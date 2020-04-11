@@ -1,0 +1,8 @@
+{
+  "name": "Game jam starter project",
+  "description": "A barebones Node.js app for game jams using Express 4",
+  "repository": "",
+  "logo": "",
+  "keywords": ["node", "express", "heroku"],
+  "image": ""
+}

@@ -1,0 +1,4 @@
+go to these locations to get started
+
+./public/pages/game/game.html
+./public/pages/game/game.js
