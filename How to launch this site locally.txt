@@ -1,0 +1,5 @@
+
+1. navigate to the folder (this folder ATOW) where the index.js file exists for node server.
+2. open comande prompt, and type "node index.js"
+3. it will tell you it is listening on a certain port
+4. use that port number, say it is 500, and direct your web broswer to local host: http://localhost:5000/

@@ -1,0 +1,1 @@
+update app.json to not be starter project
