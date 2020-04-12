@@ -3,7 +3,7 @@ import { SceneNode } from "./3d_utils.js";
 import * as EmeraldUtils from "./emerald-opengl-utils.js";
 import { Transform } from "./emerald-opengl-utils.js";
 import { coloredCubeFactory_pivoted } from "./emerald_easy_shapes.js";
-import {DragWidgetTextured} from "./draggable.js";
+import {DraggableSceneNode_Textured} from "./draggable.js";
 import {RadialPicker, CubeRadialButton, TexturedCubeRadialButton, TexturedTextButton} from "./radial_picker.js";
 import { Montserrat_BMF } from "./Montserrat_BitmapFontConfig.js";
 import { TextBlockSceneNode } from "./BitmapFontRendering.js";
@@ -1341,7 +1341,7 @@ export class PianoManager extends SceneNode
         if (!glCanvas || !camera) { console.log("Did not proved required parameters to PianoManager")}
         if (piano == null){ piano = new Piano(gl, "../shared_resources/Sounds/PianoKeySounds/", 2);}
 
-        this.dragwidget = new DragWidgetTextured(gl, true, glCanvas, camera);
+        this.dragwidget = new DraggableSceneNode_Textured(gl, true, glCanvas, camera);
         this.dragwidget.setParent(this); 
 
         this.pianoNode = new PianoNode(gl, glCanvas, piano, camera);
