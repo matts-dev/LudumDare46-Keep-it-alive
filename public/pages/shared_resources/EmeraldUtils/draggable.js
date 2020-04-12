@@ -4,7 +4,7 @@ import { discard_simpleTexturedQuadShapeShader_fs, simpleTexturedQuadShapeShader
 import * as EmeraldUtils from "../EmeraldUtils/emerald-opengl-utils.js";
 
 /** Widget that reacts to being moved by updating its local position to the moved location */
-export class DragWidget extends SceneNode
+export class DraggableSceneNode extends SceneNode
 {
     constructor(bAutoRegisterToEvents = false, canvas = null, camera = null, stopTouchesFromInvokingMouseEvents = true)
     {
@@ -172,7 +172,7 @@ export class DragWidget extends SceneNode
     }
 }
 
-export class DragWidgetTextured extends DragWidget
+export class DraggableSceneNode_Textured extends DraggableSceneNode
 {
     constructor(gl, bAutoRegisterHandlers = false, canvas = null, camera = null)
     {
