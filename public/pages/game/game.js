@@ -8,6 +8,7 @@ import { DraggableSceneNode_Textured } from "../shared_resources/EmeraldUtils/dr
 import { Montserrat_BMF } from "../shared_resources/EmeraldUtils/Montserrat_BitmapFontConfig.js";
 import {TextBlockSceneNode} from "../shared_resources/EmeraldUtils/BitmapFontRendering.js";
 
+import {GameState} from "./code/gamestate.js"
 
 //////////////////////////////////////////////////////
 //module level statics and globals
@@ -30,6 +31,8 @@ class Game
         this.inputMonitor = new key.InputMonitor();
         this.boundGameLoop = this.tick_gameLoop.bind(this);
         this.textures = this._createTextures(this.gl);
+
+        this.gameState = new GameState();
 
         ////////////////////////////////////////////////////////
         // game engine config
@@ -417,6 +420,8 @@ class Game
         let deltaSec = nowTimeSec - this.prevFrameTimestampSec;
         this.deltaSec = deltaSec;
         this.prevFrameTimestampSec = nowTimeSec;
+
+
         
         this.tick(this.deltaSec);
 
@@ -433,6 +438,8 @@ class Game
 
     tick(dt_ms)
     {
+        this.gameState.dt_sec = this.deltaSec;
+
         this.camera.tick(this.deltaSec);
     }
 
