@@ -10,6 +10,8 @@ import {TextBlockSceneNode} from "../shared_resources/EmeraldUtils/BitmapFontRen
 
 import {GameState} from "./code/GameState.js"
 import { GameEntitySpawner } from "./code/GameEntitySpawner.js";
+import {GameEntity, testAnims} from "./code/GameEntity.js";
+
 
 //////////////////////////////////////////////////////
 //module level statics and globals
@@ -72,16 +74,25 @@ class Game
         ////////////////////////////////////////////////////////
         // initialize game state
         ////////////////////////////////////////////////////////
-        this.gameState = new GameState();
-        this.gameState.canvas = this.glCanvas;
-        this.gameState.gl = this.gl;
-        this.gameState.camera = this.camera;
+        this.gamestate = new GameState();
+        this.gamestate.canvas = this.glCanvas;
+        this.gamestate.gl = this.gl;
+        this.gamestate.camera = this.camera;
+        
+        //init after set up 
+        this.gamestate.init();
+
 
 
         ////////////////////////////////////////////////////////
         // initialize starting objects
         ////////////////////////////////////////////////////////
-        this.gameState.entitySpawner = new GameEntitySpawner(this.gameState);
+        this.gamestate.entitySpawner = new GameEntitySpawner(this.gamestate);
+
+        this.testAnimEntity = new GameEntity(this.gamestate);
+        this.testAnimEntity.setLocalPosition(vec3.fromValues(5, -3, 0));
+        this.testAnimEntity.setLocalScale(vec3.fromValues(3, 3, 3));
+        this.testAnimIndex = 0;
     }
 
     _createTextures(gl){
@@ -435,8 +446,6 @@ class Game
         let deltaSec = nowTimeSec - this.prevFrameTimestampSec;
         this.deltaSec = deltaSec;
         this.prevFrameTimestampSec = nowTimeSec;
-
-
         
         this.tick(this.deltaSec);
 
@@ -453,19 +462,112 @@ class Game
 
     tick(dt_ms)
     {
-        this.gameState.dt_sec = this.deltaSec;
-        this.gameState.currentTimeSec += this.deltaSec;
+        ////////////////////////////////////////////////////////
+        // Camera stuff and matrix stuff
+        ////////////////////////////////////////////////////////
 
-        this.gameState.entitySpawner.tick(this.gameState);
+        ////////////////////////////////////////////////////////
+        // input
+        ////////////////////////////////////////////////////////
+        if(this.testAnimEntity)
+        {
+            if(this.inputMonitor.pressedStateArray[key.z])
+            {
+                // this.inputMonitor.pressedStateArray[key.z] = false;
+                this.testAnimIndex -= 1;
+                if(this.testAnimIndex < 0) this.testAnimIndex = 0;
+                this.testAnimEntity.setAnimation(testAnims[this.testAnimIndex]);
 
-        for(let friend of this.gameState.friendList)
-        {
-            friend.tick(this.gameState);
+            }
+            if(this.inputMonitor.pressedStateArray[key.x])
+            {
+                // this.inputMonitor.pressedStateArray[key.x] = false;
+                this.testAnimIndex += 1;
+                if(this.testAnimIndex >= testAnims.length) this.testAnimIndex = testAnims.length - 1;
+                this.testAnimEntity.setAnimation(testAnims[this.testAnimIndex]);
+            }
         }
-        for(let enemy of this.gameState.enemyList)
+
+        ////////////////////////////////////////////////////////
+        // Entity Ticking (must come after camera and input)
+        ////////////////////////////////////////////////////////
+
+        this.gamestate.dt_sec = this.deltaSec;
+        this.gamestate.currentTimeSec += this.deltaSec;
+
+        this.gamestate.entitySpawner.tick(this.gamestate);
+
+        for(let friend of this.gamestate.friendList)
         {
-            enemy.tick(this.gameState);
+            friend.tick(this.gamestate);
         }
+
+        for(let enemy of this.gamestate.enemyList)
+        {
+            enemy.tick(this.gamestate);
+        }
+
+        /////////////////////////////////////////////////////////////////////////////
+        // collison section
+        // warrior beats archer
+        // archer beats mage
+        // mage beats warrior
+        for(let enemy of this.gamestate.enemyList)
+        {
+            let enemyPosition = vec3.create();
+            enemy.getLocalPosition(enemyPosition);
+            for(let friend of this.gamestate.friendList)
+            {
+                let friendPosition = vec3.create();
+                friend.getLocalPosition(friendPosition);
+                let dist = vec3.distance(enemyPosition, friendPosition);
+                if (dist <= 1)
+                {
+                    // TODO: destroy the one that needs to be destroyed
+                    if (enemy.type == gamestate.CONST_WARRIOR)
+                    {
+                        if (friend.type == gamestate.CONST_WARRIOR)
+                        {
+                            
+                        }
+                        else if (friend.type == gamestate.CONST_WARRIOR)
+                        {
+                            
+                        }
+                    }
+                    else if (enemy.type == gamestate.CONST_ARCHER)
+                    {
+                        
+                    }
+                    else if (enemy.type == gamestate.CONST_MAGE)
+                    {
+
+                    }
+                    //friend.markForDelete = true;
+                }
+            }
+        }
+
+        let updatedFriendList = [];
+        for(let friend of this.gamestate.friendList)
+        {
+            if (!friend.markForDelete)
+            {
+                updatedFriendList.push(friend);
+            }
+        }
+
+        this.gamestate.friendList = updatedFriendList;
+        // end collision section
+        /////////////////////////////////////////////////////////////////////////////
+
+        this.bShowTestAnim = true;
+        if(this.bShowTestAnim)
+        {
+            this.testAnimEntity.tick(this.gamestate);
+            this.testAnimEntity.speed = 0;
+        }
+
         this.camera.tick(this.deltaSec);
     }
 
@@ -476,7 +578,7 @@ class Game
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-        gl.clearColor(0.0, 0.0, 0.0, 1);
+        gl.clearColor(0.5, 0.5, 0.5, 1);
         gl.clearDepth(1.0);
         gl.depthFunc(gl.LEQUAL);  
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -508,11 +610,23 @@ class Game
             this.coloredCube.render();
         }
 
+        this.gamestate.projectionMat = perspectiveMat;
+        this.gamestate.viewMat = viewMat;
+
         ////////////////////////////////////////////////////////
         // render examples
         ////////////////////////////////////////////////////////
-        this.draggableDemo.render(viewMat, perspectiveMat);
-        this.textSceneNodeDemo.render( perspectiveMat, viewMat);
+        // this.draggableDemo.render(viewMat, perspectiveMat);
+        // this.textSceneNodeDemo.render( perspectiveMat, viewMat);
+
+        ////////////////////////////////////////////////////////
+        // Render all renables
+        ////////////////////////////////////////////////////////
+        for(let renderable of this.gamestate.renderList)
+        {
+            renderable.renderEntity(this.gamestate);
+        }
+
     }
 }
 
