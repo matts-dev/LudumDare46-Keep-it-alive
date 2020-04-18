@@ -180,7 +180,7 @@ export class DraggableSceneNode_Textured extends DraggableSceneNode
         this.gl = gl;
 
         this.textures = this._createTextures(this.gl);
-        this.texturedQuad = texturedQuadFactory(this.gl, simpleTexturedQuadShapeShader_vs, discard_simpleTexturedQuadShapeShader_fs);
+        this._createTextureQuad();
     }
 
     v_rayHitTest(rayStart, rayDir)
@@ -203,12 +203,17 @@ export class DraggableSceneNode_Textured extends DraggableSceneNode
         return false;
     } 
 
+    _getActiveTexture()
+    {
+        return this.textures.depad.glTextureId;
+    }
+
     render(viewMat, perspectiveMat)
     {
         let quadModelMat = this.getWorldMat();
 
         this.texturedQuad.bindBuffers();
-        this.texturedQuad.bindTexture(this.gl.TEXTURE0, this.textures.depad.glTextureId, this.texturedQuad.shader.uniforms.texSampler);
+        this.texturedQuad.bindTexture(this.gl.TEXTURE0, this._getActiveTexture(), this.texturedQuad.shader.uniforms.texSampler);
         this.texturedQuad.updateShader(quadModelMat, viewMat, perspectiveMat);
         this.texturedQuad.render();
 
@@ -219,6 +224,11 @@ export class DraggableSceneNode_Textured extends DraggableSceneNode
         return {
             depad : new EmeraldUtils.Texture(gl, "../shared_resources/Textures/Icons/DepadIcon3.png"),
         }
+    }
+
+    _createTextureQuad()
+    {
+        this.texturedQuad = texturedQuadFactory(this.gl, simpleTexturedQuadShapeShader_vs, discard_simpleTexturedQuadShapeShader_fs);
     }
 
 }

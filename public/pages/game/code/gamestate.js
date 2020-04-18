@@ -15,9 +15,125 @@ export class GameState
         this.entitySpawner = null;
 
         ////////////////////////////////////////////////////////
+        // constants
+        ////////////////////////////////////////////////////////
+        this.CONST_WARRIOR = "Warrior";
+        this.CONST_ARCHER = "Archer";
+        this.CONST_MAGE = "Mage";
+
+        ////////////////////////////////////////////////////////
+        // rendering
+        ////////////////////////////////////////////////////////
+        this.projectionMat = null;
+        this.viewMat = null;
+        this.renderList = [];
+    }
+
+    init()
+    {
+        ////////////////////////////////////////////////////////
         // extra logic, try to avoid spawning stuff here; do in other classes
         ////////////////////////////////////////////////////////
+
+        this.friendList.push(new GameEntity(this, this.CONST_MAGE));
+        this.friendList.push(new GameEntity(this, this.CONST_MAGE));
+        this.friendList.push(new GameEntity(this, this.CONST_MAGE));
+        this.friendList.push(new GameEntity(this, this.CONST_WARRIOR));
+        this.friendList.push(new GameEntity(this, this.CONST_WARRIOR));
+        this.friendList.push(new GameEntity(this, this.CONST_WARRIOR));
+        this.friendList.push(new GameEntity(this, this.CONST_ARCHER));
+        this.friendList.push(new GameEntity(this, this.CONST_ARCHER));
+        this.friendList.push(new GameEntity(this, this.CONST_ARCHER));
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
