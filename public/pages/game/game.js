@@ -8,7 +8,8 @@ import { DraggableSceneNode_Textured } from "../shared_resources/EmeraldUtils/dr
 import { Montserrat_BMF } from "../shared_resources/EmeraldUtils/Montserrat_BitmapFontConfig.js";
 import {TextBlockSceneNode} from "../shared_resources/EmeraldUtils/BitmapFontRendering.js";
 
-import {GameState} from "./code/gamestate.js"
+import {GameState} from "./code/GameState.js"
+import { GameEntitySpawner } from "./code/GameEntitySpawner.js";
 
 //////////////////////////////////////////////////////
 //module level statics and globals
@@ -32,7 +33,6 @@ class Game
         this.boundGameLoop = this.tick_gameLoop.bind(this);
         this.textures = this._createTextures(this.gl);
 
-        this.gameState = new GameState();
 
         ////////////////////////////////////////////////////////
         // game engine config
@@ -67,6 +67,21 @@ class Game
         // Bind handlers to events
         ///////////////////////////////////////////////////////////////////////////
         this._bindCallbacks();
+
+
+        ////////////////////////////////////////////////////////
+        // initialize game state
+        ////////////////////////////////////////////////////////
+        this.gameState = new GameState();
+        this.gameState.canvas = this.glCanvas;
+        this.gameState.gl = this.gl;
+        this.gameState.camera = this.camera;
+
+
+        ////////////////////////////////////////////////////////
+        // initialize starting objects
+        ////////////////////////////////////////////////////////
+        this.gameState.entitySpawner = new GameEntitySpawner(this.gameState);
     }
 
     _createTextures(gl){
@@ -439,7 +454,18 @@ class Game
     tick(dt_ms)
     {
         this.gameState.dt_sec = this.deltaSec;
+        this.gameState.currentTimeSec += this.deltaSec;
 
+        this.gameState.entitySpawner.tick(this.gameState);
+
+        for(let friend of this.gameState.friendList)
+        {
+            friend.tick(this.gameState);
+        }
+        for(let enemy of this.gameState.enemyList)
+        {
+            enemy.tick(this.gameState);
+        }
         this.camera.tick(this.deltaSec);
     }
 
