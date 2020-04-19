@@ -79,20 +79,63 @@ class Game
         this.gamestate.gl = this.gl;
         this.gamestate.camera = this.camera;
         
+        this._setupPaperBG(); //init before anything can so paper can be in the background
+
         //init after set up 
-        this.gamestate.init();
+        this.gamestate.init(); //doing this after initing background
+        this.gamestate.king = new GameEntity(this.gamestate, this.gamestate.CONST_KING);
+        this.gamestate.king.makeKingEntity();
+        this.lastKingPos = vec2.fromValues(0,0);
 
-
+        ////////////////////////////////////////////////////////
+        // debug
+        ////////////////////////////////////////////////////////
+        this.testAnimEntity = new GameEntity(this.gamestate);
+        this.testAnimEntity.setLocalPosition(vec3.fromValues(5, -3, 0));
+        this.testAnimEntity.setLocalScale(vec3.fromValues(3, 3, 3));
+        this.testAnimIndex = 0;
 
         ////////////////////////////////////////////////////////
         // initialize starting objects
         ////////////////////////////////////////////////////////
         this.gamestate.entitySpawner = new GameEntitySpawner(this.gamestate);
 
-        this.testAnimEntity = new GameEntity(this.gamestate);
-        this.testAnimEntity.setLocalPosition(vec3.fromValues(5, -3, 0));
-        this.testAnimEntity.setLocalScale(vec3.fromValues(3, 3, 3));
-        this.testAnimIndex = 0;
+        this.gamestate.entitySpawner.spawnFriend(this.gamestate, this.gamestate.CONST_MAGE);
+        //this.gamestate.entitySpawner.spawnFriend(this.gamestate, this.gamestate.CONST_MAGE);
+        //this.gamestate.entitySpawner.spawnFriend(this.gamestate, this.gamestate.CONST_MAGE);
+
+        this.gamestate.entitySpawner.spawnFriend(this.gamestate, this.gamestate.CONST_WARRIOR);
+        //this.gamestate.entitySpawner.spawnFriend(this.gamestate, this.gamestate.CONST_WARRIOR);
+        //this.gamestate.entitySpawner.spawnFriend(this.gamestate, this.gamestate.CONST_WARRIOR);
+
+        this.gamestate.entitySpawner.spawnFriend(this.gamestate, this.gamestate.CONST_ARCHER);
+        //this.gamestate.entitySpawner.spawnFriend(this.gamestate, this.gamestate.CONST_ARCHER);
+        //this.gamestate.entitySpawner.spawnFriend(this.gamestate, this.gamestate.CONST_ARCHER);
+    }
+
+    _setupPaperBG()
+    {
+        let paperSize = this.gamestate.CONST_PAPERSIZE;
+        let scale = vec3.fromValues(paperSize,paperSize,paperSize);
+
+        this.paperTileMiddle = new GameEntity(this.gamestate, this.gamestate.CONST_PAPERTYPE);
+        this.paperTileMiddle.makePaperEntity(); //not great but gamejam!
+        this.paperTileMiddle.setLocalScale(scale);
+
+        this.paperTileTop = new GameEntity(this.gamestate, this.gamestate.CONST_PAPERTYPE);
+        this.paperTileTop.makePaperEntity(); //not great but gamejam!
+        this.paperTileTop.setLocalScale(scale);
+        this.paperTileTop.setLocalPosition(vec3.fromValues(0,paperSize,0));
+        
+        this.paperTileBottom = new GameEntity(this.gamestate, this.gamestate.CONST_PAPERTYPE);
+        this.paperTileBottom.makePaperEntity(); //not great but gamejam!
+        this.paperTileBottom.setLocalScale(scale);
+        this.paperTileBottom.setLocalPosition(vec3.fromValues(0,-paperSize,0));
+
+        // this.paperTileBottom = new GameEntity(this.gamestate);
+        // this.paperTileBottom.makePaperEntity(); //not great but gamejam!
+        // this.paperTileBottom.setLocalScale(scale);
+        // this.paperTileBottom.setLocalPosition(vec3.fromValues(0,paperSize,0));
     }
 
     _createTextures(gl){
@@ -462,6 +505,8 @@ class Game
 
     tick(dt_ms)
     {
+        let gs = this.gamestate;
+
         ////////////////////////////////////////////////////////
         // Camera stuff and matrix stuff
         ////////////////////////////////////////////////////////
@@ -476,7 +521,7 @@ class Game
                 // this.inputMonitor.pressedStateArray[key.z] = false;
                 this.testAnimIndex -= 1;
                 if(this.testAnimIndex < 0) this.testAnimIndex = 0;
-                this.testAnimEntity.setAnimation(testAnims[this.testAnimIndex]);
+                this.testAnimEntity.setAnimationData(testAnims[this.testAnimIndex]);
 
             }
             if(this.inputMonitor.pressedStateArray[key.x])
@@ -484,27 +529,47 @@ class Game
                 // this.inputMonitor.pressedStateArray[key.x] = false;
                 this.testAnimIndex += 1;
                 if(this.testAnimIndex >= testAnims.length) this.testAnimIndex = testAnims.length - 1;
-                this.testAnimEntity.setAnimation(testAnims[this.testAnimIndex]);
+                this.testAnimEntity.setAnimationData(testAnims[this.testAnimIndex]);
             }
         }
 
         ////////////////////////////////////////////////////////
         // Entity Ticking (must come after camera and input)
         ////////////////////////////////////////////////////////
+        gs.dt_sec = this.deltaSec;
+        gs.currentTimeSec += this.deltaSec;
 
-        this.gamestate.dt_sec = this.deltaSec;
-        this.gamestate.currentTimeSec += this.deltaSec;
-
-        this.gamestate.entitySpawner.tick(this.gamestate);
-
-        for(let friend of this.gamestate.friendList)
+        ////////////////////////////////////////////////////////
+        // king
+        gs.king.tick(gs);
+        if(gs.king)
         {
-            friend.tick(this.gamestate);
+            let kingPos = vec3.create();
+            gs.king.getLocalPosition(kingPos);
+            this.camera.position[0] = kingPos[0];
+            this.camera.position[1] = kingPos[1];
+            // this.camera.position[2] = kingPos[2];
+            gs.kingMoveDeltaX = kingPos[0] - this.lastKingPos[0];
+            gs.kingMoveDeltaY = kingPos[1] - this.lastKingPos[1];
+            this.lastKingPos[0] = kingPos[0];
+            this.lastKingPos[1] = kingPos[1];
+        }
+        ////////////////////////////////////////////////////////
+        this.paperTileTop.tick(this.gamestate);
+        this.paperTileMiddle.tick(this.gamestate);
+        this.paperTileBottom.tick(this.gamestate);
+
+        gs.entitySpawner.tick(gs);
+
+
+        for(let friend of gs.friendList)
+        {
+            friend.tick(gs);
         }
 
-        for(let enemy of this.gamestate.enemyList)
+        for(let enemy of gs.enemyList)
         {
-            enemy.tick(this.gamestate);
+            enemy.tick(gs);
         }
 
         /////////////////////////////////////////////////////////////////////////////
@@ -512,44 +577,89 @@ class Game
         // warrior beats archer
         // archer beats mage
         // mage beats warrior
-        for(let enemy of this.gamestate.enemyList)
+        for(let enemy of gs.enemyList)
         {
             let enemyPosition = vec3.create();
             enemy.getLocalPosition(enemyPosition);
-            for(let friend of this.gamestate.friendList)
+            for(let friend of gs.friendList)
             {
                 let friendPosition = vec3.create();
                 friend.getLocalPosition(friendPosition);
                 let dist = vec3.distance(enemyPosition, friendPosition);
                 if (dist <= 1)
                 {
-                    // TODO: destroy the one that needs to be destroyed
-                    if (enemy.type == gamestate.CONST_WARRIOR)
+                    // TODO: destroy the game entities that needs to be destroyed
+                    if (enemy.type == gs.CONST_WARRIOR)
                     {
-                        if (friend.type == gamestate.CONST_WARRIOR)
+                        if (friend.type == gs.CONST_ARCHER)
                         {
-                            
+                            friend.markForDelete = true;
                         }
-                        else if (friend.type == gamestate.CONST_WARRIOR)
+                        else if (friend.type == gs.CONST_MAGE)
                         {
-                            
+                            enemy.markForDelete = true;
+                        }
+                        else
+                        {
+                            friend.markForDelete = true;
+                            enemy.markForDelete = true;
                         }
                     }
-                    else if (enemy.type == gamestate.CONST_ARCHER)
+                    else if (enemy.type == gs.CONST_ARCHER)
                     {
-                        
+                        if (friend.type == gs.CONST_MAGE)
+                        {
+                            friend.markForDelete = true;
+                        }
+                        else if (friend.type == gs.CONST_WARRIOR)
+                        {
+                            enemy.markForDelete = true;
+                        }
+                        else
+                        {
+                            friend.markForDelete = true;
+                            enemy.markForDelete = true;
+                        }
                     }
-                    else if (enemy.type == gamestate.CONST_MAGE)
+                    else if (enemy.type == gs.CONST_MAGE)
                     {
-
+                        if (friend.type == gs.CONST_WARRIOR)
+                        {
+                            friend.markForDelete = true;
+                        }
+                        else if (friend.type == gs.CONST_ARCHER)
+                        {
+                            enemy.markForDelete = true;
+                        }
+                        else
+                        {
+                            friend.markForDelete = true;
+                            enemy.markForDelete = true;
+                        }
                     }
-                    //friend.markForDelete = true;
                 }
             }
         }
 
+        for(let enemy of gs.enemyList)
+        {
+            let enemyPosition = vec3.create();
+            enemy.getLocalPosition(enemyPosition);
+
+            let kingPosition = vec3.create();
+            gs.king.getLocalPosition(kingPosition);
+
+            let dist = vec3.distance(enemyPosition, kingPosition);
+            if (dist <= 1)
+            {
+                gs.king.speed = 0;
+                gs.king.defeatKing();
+            }
+        }
+
+
         let updatedFriendList = [];
-        for(let friend of this.gamestate.friendList)
+        for(let friend of gs.friendList)
         {
             if (!friend.markForDelete)
             {
@@ -557,15 +667,25 @@ class Game
             }
         }
 
-        this.gamestate.friendList = updatedFriendList;
+        let updatedEnemyList = [];
+        for (let enemy of gs.enemyList)
+        {
+            if (!enemy.markForDelete)
+            {
+                updatedEnemyList.push(enemy);
+            }
+        }
+
+        gs.enemyList = updatedEnemyList;
+        gs.friendList = updatedFriendList;
         // end collision section
         /////////////////////////////////////////////////////////////////////////////
 
         this.bShowTestAnim = true;
         if(this.bShowTestAnim)
         {
-            this.testAnimEntity.tick(this.gamestate);
-            this.testAnimEntity.speed = 0;
+            this.testAnimEntity.tick(gs);
+            this.testAnimEntity.speed = gs.CONST_KING_SPEED;
         }
 
         this.camera.tick(this.deltaSec);

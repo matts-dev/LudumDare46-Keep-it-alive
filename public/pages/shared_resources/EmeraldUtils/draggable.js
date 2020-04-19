@@ -35,6 +35,7 @@ export class DraggableSceneNode extends SceneNode
             canvas.addEventListener('touchmove', this.handleTouchMove.bind(this), false);
             canvas.addEventListener('touchend', this.handleTouchEnd.bind(this), false);
             // this.glCanvas.addEventListener('touchcancel', this.handleTouchCancel.bind(this), false);
+            this.bEnableDrag = true;
         }
     }
 
@@ -58,6 +59,11 @@ export class DraggableSceneNode extends SceneNode
 
     notifyInputDownEvent(e, canvas, camera)
     {
+        if(!this.bEnableDrag)
+        {
+            return;
+        }
+
         let touch = null;
         if (e.changedTouches && e.changedTouches.length > 0) 
         {
