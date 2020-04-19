@@ -337,7 +337,8 @@ export class GameEntity extends DraggableSceneNode_Textured
                 depad : new EmeraldUtils.Texture(gl, "./art/Examples/RockPaperScissors.png"),
                 paper : new EmeraldUtils.Texture(gl, "./art/textures/paper_tile_256.png"),
                 stacey_texture : new EmeraldUtils.Texture(gl, "./art/textures/stacey_texture_1024_64x64.png"),
-                amanda_texture : new EmeraldUtils.Texture(gl, "./art/textures/amanda_texture_1024_64x64.png"),
+                // amanda_texture : new EmeraldUtils.Texture(gl, "./art/textures/amanda_texture_1024_64x64.png"),
+                amanda_texture : new EmeraldUtils.Texture(gl, "./art/textures/rt_amanda_texture_1024_64x64.png"),
             };
         }
         return staticTextures;
