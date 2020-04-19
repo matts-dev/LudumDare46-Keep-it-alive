@@ -129,6 +129,8 @@ export class GameEntity extends DraggableSceneNode_Textured
         this.uvScale = 64.0/1024.0;
         this.stunTimeStamp = -500; //don't stun at spawn
         this.preStunAnimation = null;
+        this.previousDragAnim = null;
+        this.dragAnimation = null;
         this.stunAnimation = null;
         this.bClearStunAnim = false;
 
@@ -212,12 +214,17 @@ export class GameEntity extends DraggableSceneNode_Textured
         }        
     }
 
-    onDragStarted() {
-
+    onDragStarted() 
+    {
+        this.setAnimation(this.gamestate, this.type, /*drag*/true);
     }
-    onDragStopped() {
-
-        
+    onDragStopped() 
+    {
+        // if(this.previousDragAnim)
+        // {
+        //     this.setAnimationData(this.previousDragAnim);
+        // }
+        this.setAnimation(this.gamestate, this.type, /*drag*/false);
     }
 
     setAnimationData(animData, cachePreStun=true)
@@ -227,6 +234,7 @@ export class GameEntity extends DraggableSceneNode_Textured
             if(cachePreStun)
             {
                 this.preStunAnimation = animData;
+                this.previousDragAnim = animData;
             }
 
             this.animationFrameIdx = 0;
