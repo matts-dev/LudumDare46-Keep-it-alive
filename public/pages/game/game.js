@@ -8,7 +8,7 @@ import { DraggableSceneNode_Textured } from "../shared_resources/EmeraldUtils/dr
 import { Montserrat_BMF } from "../shared_resources/EmeraldUtils/Montserrat_BitmapFontConfig.js";
 import {TextBlockSceneNode} from "../shared_resources/EmeraldUtils/BitmapFontRendering.js";
 
-import {GameState} from "./code/GameState.js"
+import {GameState} from "./code/gamestate.js"
 import { GameEntitySpawner } from "./code/GameEntitySpawner.js";
 import {GameEntity, testAnims} from "./code/GameEntity.js";
 
