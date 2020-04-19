@@ -1,5 +1,7 @@
 import {GameState} from "./GameState.js"
 import { DraggableSceneNode_Textured } from "../../shared_resources/EmeraldUtils/draggable.js";
+import { Camera } from "../../shared_resources/EmeraldUtils/emerald-opengl-utils.js";
+import { f } from "../../shared_resources/EmeraldUtils/browser_key_codes.js";
 import * as EmeraldUtils from "../../shared_resources/EmeraldUtils/emerald-opengl-utils.js";
 import { texturedQuadFactory } from "../../shared_resources/EmeraldUtils/emerald_easy_shapes.js";
 
@@ -101,10 +103,11 @@ export class GameEntity extends DraggableSceneNode_Textured
         // fields
         ////////////////////////////////////////////////////////
         this.type = type;
-        this.speed = 3;
-        this.movementDirection = vec3.fromValues(0, -1, 0);
-        this.grabbed = false;
+        this.isFriend = true;
+        this.speed = gamestate.CONST_KING_SPEED;
+        this.movementDirection = vec3.fromValues(0, 1, 0);
         this.markForDelete = false;
+        this.gamestate = gamestate; //just caching this because it is easier for now! gamejam hacks!
 
         this.currentAnimationTickRateSecs = 0.1;
         this.framesInCurrentAnimation = 4;
@@ -112,16 +115,69 @@ export class GameEntity extends DraggableSceneNode_Textured
         this.lastAnimationTickTime = 0.0;
         this.animX = 1;
         this.animY = 0;
+        this.uvScale = 64.0/1024.0;
 
         this.initStaticAnimations();
 
-        this.setAnimation(warrior_WalkAnim_Front);
+        this.setAnimation(gamestate, this.type, false);
 
         ////////////////////////////////////////////////////////
         // logic and initialization
         ////////////////////////////////////////////////////////
         //set up automatic rendering
         gamestate.renderList.push(this);
+    }
+
+    setAnimation(gamestate, type, isGrab)
+    {
+        if (this.type == gamestate.CONST_WARRIOR)
+        {
+            if (isGrab)
+            {
+                this.setAnimationData(warrior_GrabbedAnim);
+            }
+            else
+            {
+                this.setAnimationData(warrior_WalkAnim_Front);
+            }
+            
+        }
+        else if (this.type == gamestate.CONST_ARCHER)
+        {
+            if (isGrab)
+            {
+                this.setAnimationData(archer_GrabbedAnim);
+            }
+            else
+            {
+                this.setAnimationData(archer_WalkAnim_Front);
+            }
+        }
+        else if (this.type == gamestate.CONST_MAGE)
+        {
+            if (isGrab)
+            {
+                this.setAnimationData(mage_GrabbedAnim);
+            }
+            else
+            {
+                this.setAnimationData(mage_WalkAnim_Front);
+            }
+        }
+        else if (this.type == gamestate.CONST_KING)
+        {
+            this.setAnimationData(king_WalkAnim_Front);
+        }
+        else
+        {
+            // FAIL SAFE
+            this.setAnimationData(warrior_GrabbedAnim);
+        }
+    }
+
+    defeatKing()
+    {
+        this.setAnimationData(king_DamagedAnim);
     }
 
     tryCreateTextures()
@@ -132,7 +188,7 @@ export class GameEntity extends DraggableSceneNode_Textured
         }        
     }
 
-    setAnimation(animData)
+    setAnimationData(animData)
     {
         if(animData)
         {
@@ -216,40 +272,59 @@ export class GameEntity extends DraggableSceneNode_Textured
     
     tick(gamestate)
     {   
-        //Not sure how to get auto completion.... use hinter object to get auto complete lol.
-        // let hinter = new GameState();
-        // hinter.friendList
-        // console.log(hinter.friendList);
+        //fix issue where when moving draggables slide; this is mostly a bandaid rather than real fix (probably using scene nodes)
+        if(this.bDragging)  //hacks
+        {
+            this.startParentLocalPos[0] += gamestate.kingMoveDeltaX;
+            this.startParentLocalPos[1] += gamestate.kingMoveDeltaY;
 
+            let currPos = vec3.create();
+            this.getLocalPosition(currPos);
+            currPos[0] += gamestate.kingMoveDeltaX;
+            currPos[1] += gamestate.kingMoveDeltaY;
+            this.setLocalPosition(currPos);
+        }
 
         ////////////////////////////////////////////////////////
         // Kinematics
         ////////////////////////////////////////////////////////
-        if (!this.grabbed) // if not grabbed
+        if (!this.bDragging 
+            && !this.bIsPaperEntity
+            ) // if not grabbed
         {
             let deltaMovement  = vec3.scale(vec3.create(), this.movementDirection, this.speed * gamestate.dt_sec);
             let currentLocalPosition = vec3.create();
             this.getLocalPosition(currentLocalPosition);
             let newLocalPosition = vec3.add(vec3.create(), currentLocalPosition, deltaMovement);
             this.setLocalPosition(newLocalPosition);
-            //if !grabbed..if. don't move
-            //unit vector that is the movement direction
-            //float that is the speed
-            //tick should be 
-            //  deltaMovement = (speed * unitVector * dt_sec);
-            // localPosition += deltaMovent 
         }
     
         
         ////////////////////////////////////////////////////////
         // animation
         ////////////////////////////////////////////////////////
-        if(this.lastAnimationTickTime + this.currentAnimationTickRateSecs < gamestate.currentTimeSec)
+        if(this.lastAnimationTickTime + this.currentAnimationTickRateSecs < gamestate.currentTimeSec
+             && !this.bIsPaperEntity
+            )
         {
             this.lastAnimationTickTime = gamestate.currentTimeSec;
             this.animationFrameIdx = (this.animationFrameIdx + 1) % this.framesInCurrentAnimation;
         }
 
+        ////////////////////////////////////////////////////////
+        // paper
+        ////////////////////////////////////////////////////////
+        if(this.bIsPaperEntity)
+        {
+            let myPos = vec3.create();
+            this.getLocalPosition(myPos);
+
+            if(myPos[1] + gamestate.CONST_PAPERSIZE * 1  < gamestate.camera.position[1])
+            {
+                myPos[1] = myPos[1] + gamestate.CONST_PAPERSIZE * 3;
+                this.setLocalPosition(myPos);
+            }
+        }
     }
 
     _createTextures(gl)
@@ -260,7 +335,7 @@ export class GameEntity extends DraggableSceneNode_Textured
                 // depad : new EmeraldUtils.Texture(gl, "../shared_resources/Textures/Icons/DepadIcon3.png"),
                 // rockpaperscissors : new EmeraldUtils.Texture(gl, "./art/Examples/RockPaperScissor.png"),
                 depad : new EmeraldUtils.Texture(gl, "./art/Examples/RockPaperScissors.png"),
-                paper : new EmeraldUtils.Texture(gl, "./art/textures/paper_tile_128.png"),
+                paper : new EmeraldUtils.Texture(gl, "./art/textures/paper_tile_256.png"),
                 stacey_texture : new EmeraldUtils.Texture(gl, "./art/textures/stacey_texture_1024_64x64.png"),
                 amanda_texture : new EmeraldUtils.Texture(gl, "./art/textures/amanda_texture_1024_64x64.png"),
             };
@@ -282,13 +357,39 @@ export class GameEntity extends DraggableSceneNode_Textured
         this.texturedQuad.shader.uniforms["tileIdx"] = this.gl.getUniformLocation(this.texturedQuad.shader.program, "tileIdx");
     }
 
+    makePaperEntity()
+    {
+        this.activeTexture = staticTextures.paper.glTextureId;
+        this.bEnableDrag = false;
+        this.bIsPaperEntity = true;
+        this.speed = 0;
+
+        //don't need to animate at all, but set up an animation state
+        this.currentAnimationTickRateSecs = 1;
+        this.framesInCurrentAnimation = 0;
+        this.animationFrameIdx = 0;
+        this.lastAnimationTickTime = 0.0;
+        this.animX = 0;
+        this.animY = 0;
+        this.uvScale = 3.0;
+
+    }
+
+    makeKingEntity()
+    {
+        // this.curremtAm
+        this.bEnableDrag = false;
+        this.setAnimation(this.gamestate, this.gamestate.CONST_KING, false);
+        this.speed = this.gamestate.CONST_KING_SPEED;
+        this.movementDirection = vec3.fromValues(0, 1, 0);
+    }
+
     renderEntity(gamestate)
     {
         let gs = gamestate;
 
         if(gs.projectionMat && gs.viewMat)
         {
-
             ////////////////////////////////////////////////////////
             // update shader
             ////////////////////////////////////////////////////////
@@ -297,7 +398,7 @@ export class GameEntity extends DraggableSceneNode_Textured
             gl.useProgram(staticTextureQuad.shader.program);
             
             // gl.uniformMatrix4fv(this.shader.uniforms.projection, false, projectionMat);
-            gl.uniform1f(this.texturedQuad.shader.uniforms.uvWidth, 64.0/1024.0); //don't need to set this every tick
+            gl.uniform1f(this.texturedQuad.shader.uniforms.uvWidth, this.uvScale); 
             gl.uniform2f(this.texturedQuad.shader.uniforms.tileIdx, this.animX, this.animationFrameIdx + this.animY);
 
             this.render(gs.viewMat, gs.projectionMat);

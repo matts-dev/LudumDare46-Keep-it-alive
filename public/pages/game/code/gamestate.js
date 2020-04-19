@@ -13,6 +13,13 @@ export class GameState
         this.enemyList = [];
         this.currentTimeSec = 0;
         this.entitySpawner = null;
+        this.king = null;
+
+        ////////////////////////////////////////////////////////
+        // HELPERS
+        ////////////////////////////////////////////////////////
+        this.kingMoveDeltaX = 0.0; //used to fix dragable offset issues while camera moving
+        this.kingMoveDeltaY = 0.0; //used to fix dragable offset issues while camera moving
 
         ////////////////////////////////////////////////////////
         // constants
@@ -20,6 +27,13 @@ export class GameState
         this.CONST_WARRIOR = "Warrior";
         this.CONST_ARCHER = "Archer";
         this.CONST_MAGE = "Mage";
+        this.CONST_KING = "King";
+        this.CONST_PAPERTYPE = "Paper";
+        this.CONST_PROP = "Prop";
+        
+        this.CONST_PAPERSIZE = 10;
+        this.CONST_KING_SPEED = 1;
+        this.CONST_ENEMY_SPEED = 1;
 
         ////////////////////////////////////////////////////////
         // rendering
@@ -34,18 +48,73 @@ export class GameState
         ////////////////////////////////////////////////////////
         // extra logic, try to avoid spawning stuff here; do in other classes
         ////////////////////////////////////////////////////////
-
-        this.friendList.push(new GameEntity(this, this.CONST_MAGE));
-        this.friendList.push(new GameEntity(this, this.CONST_MAGE));
-        this.friendList.push(new GameEntity(this, this.CONST_MAGE));
-        this.friendList.push(new GameEntity(this, this.CONST_WARRIOR));
-        this.friendList.push(new GameEntity(this, this.CONST_WARRIOR));
-        this.friendList.push(new GameEntity(this, this.CONST_WARRIOR));
-        this.friendList.push(new GameEntity(this, this.CONST_ARCHER));
-        this.friendList.push(new GameEntity(this, this.CONST_ARCHER));
-        this.friendList.push(new GameEntity(this, this.CONST_ARCHER));
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

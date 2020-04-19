@@ -16,14 +16,21 @@ export class GameEntitySpawner
 
     tick(gamestate)
     {   
+
+        if (gamestate.friendList.length <= 0)
+        {
+            // early out
+            this.lastSpawnTime = gamestate.currentTimeSec;
+            return;
+        }
         
         if(this.lastSpawnTime + 1.0 < gamestate.currentTimeSec)
         {
-            let friendIndex = GetRandomInt(gamestate.friendList.length);
-
             let typeToSpawn = "invalid";
+            let friendIndex = GetRandomInt(gamestate.friendList.length);
+            let chosenFriend = gamestate.friendList[friendIndex];
 
-            switch(gamestate.friendList[friendIndex].type)
+            switch(chosenFriend.type)
             {
                 case gamestate.CONST_WARRIOR:
                     typeToSpawn = gamestate.CONST_MAGE;
@@ -42,25 +49,44 @@ export class GameEntitySpawner
             {
                 if(gamestate.camera) //camera in emerald-opengl-utils.js
                 {
+                    let chosenFriendPosition = vec3.create();
+                    chosenFriend.getLocalPosition(chosenFriendPosition);
+
                     let cam = gamestate.camera;
-                    let x = cam.position[0];
+                    let x = chosenFriendPosition[0];
                     let y = cam.position[1];
                     // let z = cam.position[2];
 
-                    let xOffset = GetRandomInt(11) - 5;
-                    let yOffset = GetRandomInt(11) - 5;
+                    //let xOffset = GetRandomInt(11) - 5;
+                    let yOffset = 15;
 
                     let newEnemy = new GameEntity(gamestate, typeToSpawn);
-                    newEnemy.setLocalPosition(vec3.fromValues(x + xOffset, y + yOffset, /*z*/ 0));
+                    newEnemy.setLocalPosition(vec3.fromValues(x, y + yOffset, /*z*/ 0));
+                    newEnemy.isFriend = false;
+                    newEnemy.movementDirection = vec3.fromValues(0, -1, 0);
+                    newEnemy.speed = gamestate.CONST_ENEMY_SPEED;
+                    newEnemy.bEnableDrag = false;
 
                     gamestate.enemyList.push(newEnemy);
                     console.log("Spawned an enemy!");
                 }
-  
-            }
-            //gamestate.friendList.push(new GameEntity(gamestate, this.CONST_WARRIOR));
+            }   
             this.lastSpawnTime = gamestate.currentTimeSec;
-        }   
+        }
+    }
+
+    spawnFriend(gamestate, type)
+    {
+        let cam = gamestate.camera;
+        let x = cam.position[0];
+        let y = cam.position[1];
+
+        let xOffset = GetRandomInt(11) - 5;
+        let yOffset = GetRandomInt(6);
+
+        let newFriend = new GameEntity(gamestate, type);
+        newFriend.setLocalPosition(vec3.fromValues(x + xOffset, y + yOffset, /*z*/ 0));
+        gamestate.friendList.push(newFriend);
     }
 
 
