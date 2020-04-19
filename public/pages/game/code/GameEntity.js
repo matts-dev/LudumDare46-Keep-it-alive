@@ -1,4 +1,4 @@
-import {GameState} from "./GameState.js"
+import {GameState} from "./gamestate.js"
 import { DraggableSceneNode_Textured } from "../../shared_resources/EmeraldUtils/draggable.js";
 import { Camera } from "../../shared_resources/EmeraldUtils/emerald-opengl-utils.js";
 import { f } from "../../shared_resources/EmeraldUtils/browser_key_codes.js";
