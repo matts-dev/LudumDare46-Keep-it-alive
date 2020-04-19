@@ -60,8 +60,6 @@ class AnimationTextureData
         this.framesPerTexture = framesPerTexture;
         this.frameTimeSec = frameTimeSec;
         this.srcTexture = srcTexture;
-        this.hp = 1;
-        this.stunTimeStamp = -100; //don't stun at start
     }
 }
 
@@ -97,6 +95,8 @@ let prop_rockAnim            = null;
 let prop_bushAnim            = null;
 let prop_waterAnim            = null;
 let prop_grassAnim            = null;
+
+let buttonAnimData            = null;
 
 let pencil_anim            = null;
 
@@ -136,20 +136,56 @@ export class GameEntity extends DraggableSceneNode_Textured
 
         this.initStaticAnimations();
 
-        this.setAnimation(gamestate, this.type, false);
+        if (type != gamestate.CONST_PROP)
+        {
+            this.setAnimation(gamestate, this.type, false);   
+        }
+        else
+        {
+            this.setPropAnimation(gamestate);
+        }
 
         ////////////////////////////////////////////////////////
         // logic and initialization
         ////////////////////////////////////////////////////////
         //set up automatic rendering
 
-        if (type != gamestate.CONST_PROP)
+        if (type == gamestate.CONST_PROP)
         {
-            gamestate.renderList.push(this);   
+            gamestate.propRenderList.push(this);
+        }
+        else if (type == gamestate.CONST_PAPERTYPE)
+        {
+            gamestate.backgroundRenderList.push(this);
         }
         else
         {
-            gamestate.propRenderList.push(this);
+            gamestate.renderList.push(this);   
+        }
+    }
+
+    setPropAnimation(gamestate)
+    {
+        let randomPropIndex = gamestate.entitySpawner.GetRandomNumberInRange(0, 3);
+
+        switch(randomPropIndex)
+        {
+            case 0:
+                this.setAnimationData(prop_rockAnim);
+                break;
+            case 1:
+                this.setAnimationData(prop_bushAnim);
+                break;
+            case 2:
+                this.setAnimationData(prop_waterAnim);
+                break;
+            case 3:
+                this.setAnimationData(prop_grassAnim);
+                break;
+            default:
+                // FAIL SAFE
+                this.setAnimationData(prop_rockAnim);
+                break;
         }
     }
 
@@ -203,7 +239,16 @@ export class GameEntity extends DraggableSceneNode_Textured
     tryDefeatKing()
     {
         this.setDamage(1);
-        return this.hp <= 0;
+
+        if(this.hp <= 0)
+        {
+            for(let friend of this.gamestate.friendList)
+            {
+                friend.die();
+            }
+            return true;
+        }
+        return false
     }
 
     tryCreateTextures()
@@ -285,12 +330,13 @@ export class GameEntity extends DraggableSceneNode_Textured
             king_WalkAnim_Back          = new AnimationTextureData(3,  0,  3,  0.1, staticTextures.stacey_texture.glTextureId);
             king_DamagedAnim            = new AnimationTextureData(4,  0,  1,  0.1, staticTextures.stacey_texture.glTextureId);
 
-            prop_rockAnim            = new AnimationTextureData(7,  0,  3,  0.1, staticTextures.stacey_texture.glTextureId);
-            prop_bushAnim            = new AnimationTextureData(6,  0,  2,  0.1, staticTextures.stacey_texture.glTextureId);
-            prop_waterAnim            = new AnimationTextureData(5,  3,  3,  0.1, staticTextures.stacey_texture.glTextureId);
-            prop_grassAnim          = new AnimationTextureData(8,  9,  2,  0.1, staticTextures.stacey_texture.glTextureId);
+            prop_rockAnim            = new AnimationTextureData(7,  0,  3,  0.4, staticTextures.stacey_texture.glTextureId);
+            prop_bushAnim            = new AnimationTextureData(6,  0,  2,  0.4, staticTextures.stacey_texture.glTextureId);
+            prop_waterAnim            = new AnimationTextureData(5,  3,  3,  0.4, staticTextures.stacey_texture.glTextureId);
+            prop_grassAnim          = new AnimationTextureData(8,  9,  2,  0.4, staticTextures.stacey_texture.glTextureId);
             pencil_anim            = new AnimationTextureData(8,  3,  4,  0.075, staticTextures.stacey_texture.glTextureId);
 
+            buttonAnimData = new AnimationTextureData(2,  13,  3,  0.2, staticTextures.stacey_texture.glTextureId);
 
             //debug set anim data
             testAnims.push( warrior_WalkAnim_Front    );
@@ -322,6 +368,8 @@ export class GameEntity extends DraggableSceneNode_Textured
             testAnims.push(prop_waterAnim    );
             testAnims.push(prop_grassAnim    );
             testAnims.push(pencil_anim       );
+            testAnims.push(buttonAnimData       );
+            
         }
 
     }
@@ -442,6 +490,11 @@ export class GameEntity extends DraggableSceneNode_Textured
         this.bDragging = false;
         this.bEnableDrag = false;
         this.speed = 0;
+        if (!this.isFriend)
+        {
+            this.gamestate.score++;
+            console.log(this.gamestate.score);
+        }
     }
 
     _createTextures(gl)
@@ -505,6 +558,11 @@ export class GameEntity extends DraggableSceneNode_Textured
         this.stunAnimation = king_DamagedAnim;
         // this.setAnimationData(king_DamagedAnim, false);
         // this.stun();
+    }
+
+    setTextureToButton()
+    {
+        this.setAnimationData(buttonAnimData, false);
     }
 
     renderEntity(gamestate)

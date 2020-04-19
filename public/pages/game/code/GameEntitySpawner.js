@@ -7,44 +7,58 @@ function GetRandomInt(max)
     return Math.floor(Math.random() * Math.floor(max));
 }
 
-function GetRandomNumberInRange(min, max)
-{  
-    return Math.floor(Math.random() * (max - min) + min);
-}  
-
 export class GameEntitySpawner
 {
     constructor(gamestate) 
     {
         this.lastSpawnTime = 0;
+        this.lastPropSpawnTime = 0;
         this.chosenFriendPositionsX = [];
+    }
+
+    GetRandomNumberInRange(min, max)
+    {
+        return Math.floor(Math.random() * (max - min) + min);
+    }
+
+    GetRandomNumberInRangeFloat(min, max)
+    {
+        return Math.random() * (max - min) + min; 
     }
 
     tick(gamestate)
     {   
-        if(this.lastSpawnTime + 4.0 < gamestate.currentTimeSec)
+        if (gamestate.currentTimeSec > this.lastPropSpawnTime + 2.0)
+        {
+            this.spawnProp(gamestate);
+            this.lastPropSpawnTime = gamestate.currentTimeSec;
+        }
+
+
+        if(gamestate.currentTimeSec > this.lastSpawnTime + 4.0 )
         {
             if (gamestate.friendList.length <= 0)
             {
                 // spawn in random areas to try and destroy the king
+                /*
                 let kingPosition = vec3.create();
                 gamestate.king.getLocalPosition(kingPosition);
 
                 let x = kingPosition[0];
                 let y = kingPosition[1];
 
-                let xOffset = GetRandomNumberInRange(-5, 5);
+                let xOffset = this.GetRandomNumberInRange(-5, 5);
                 let yOffset = gamestate.CONST_SPAWN_Y_OFFSET;
 
-                let randomType = GetRandomNumberInRange(0, 2);
+                let randomType = this.GetRandomNumberInRange(0, 2);
+                */
 
                 // early out
                 this.lastSpawnTime = gamestate.currentTimeSec;
                 return;
             }
-            
-            //this.spawnProp();
 
+            // TODO: Handle spawning if king dead but players keep moving?
 
             let typeToSpawn = "invalid";
             let friendIndex = GetRandomInt(gamestate.friendList.length);
@@ -89,7 +103,7 @@ export class GameEntitySpawner
                     newEnemy.bEnableDrag = false;
 
                     gamestate.enemyList.push(newEnemy);
-                    console.log("Spawned an enemy!");
+                    //console.log("Spawned an enemy!");
                 }
             }   
             this.lastSpawnTime = gamestate.currentTimeSec;
@@ -104,11 +118,11 @@ export class GameEntitySpawner
         let x = kingPosition[0];
         let y = kingPosition[1];
 
-        let xOffset = GetRandomNumberInRange(-3, 3);
+        let xOffset = this.GetRandomNumberInRange(-3, 3);
         let attempts = 0;
         while (this.chosenFriendPositionsX.includes(xOffset) && attempts <= 10)
         {
-            xOffset = GetRandomNumberInRange(-3, 3);
+            xOffset = this.GetRandomNumberInRange(-3, 3);
             attempts++;
             //console.log("Choosing another friend spawn spot:", xOffset, this.chosenFriendPositionsX);
         }
@@ -116,7 +130,7 @@ export class GameEntitySpawner
 
         let yOffset = 2;
 
-        console.log("Spawned friendly with offset X:", xOffset);
+        //console.log("Spawned friendly with offset X:", xOffset);
 
 
         let newFriend = new GameEntity(gamestate, type);
@@ -126,17 +140,25 @@ export class GameEntitySpawner
     }
 
     spawnProp(gamestate)
-    {
-        let kingPosition = vec3.create();
-        gamestate.king.getLocalPosition(kingPosition);
+    {   
+        let cam = gamestate.camera;
+        let x = 0;
+        let y = cam.position[1];
 
-        xOffset = GetRandomNumberInRange(-5, 5);
-        yOffset = 10;
+        let xOffset = this.GetRandomNumberInRangeFloat(-10.0, 10.0);
+        let yOffset = gamestate.CONST_SPAWN_Y_OFFSET;
+
+        let scaleFactor = this.GetRandomNumberInRangeFloat(1.0, 2.0);
+        let scale = vec3.fromValues(scaleFactor, scaleFactor, scaleFactor);
 
         // This should automatically add the prop to the prop render list in gamestate
         let newProp = new GameEntity(gamestate, gamestate.CONST_PROP);
-        newProp.setLocalPosition(vec3.fromValues(kingPosition[0] + xOffset, kingPosition[1] + yOffset, 0));
+        newProp.setLocalPosition(vec3.fromValues(x + xOffset, y + yOffset, 0));
         newProp.bEnableDrag = false;
+        newProp.speed = 0;
+        newProp.setLocalScale(scale);
+        //console.log("spawned a prop!");
+        //console.log(gamestate.propRenderList);
     }
 
 
