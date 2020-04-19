@@ -93,6 +93,11 @@ let king_WalkAnim_Front         = null;// new AnimationTextureData();
 let king_WalkAnim_Back          = null;// new AnimationTextureData();
 let king_DamagedAnim            = null;// new AnimationTextureData();
 
+let prop_rockAnim            = null;
+let prop_bushAnim            = null;
+let prop_waterAnim            = null;
+let pencil_anim            = null;
+
 export let testAnims = [];
 
 export class GameEntity extends DraggableSceneNode_Textured
@@ -109,6 +114,7 @@ export class GameEntity extends DraggableSceneNode_Textured
         this.speed = gamestate.CONST_KING_SPEED;
         this.movementDirection = vec3.fromValues(0, 1, 0);
         this.markForDelete = false;
+        this.dead = false;
         this.gamestate = gamestate; //just caching this because it is easier for now! gamejam hacks!
         this.hp = 1;
 
@@ -120,6 +126,9 @@ export class GameEntity extends DraggableSceneNode_Textured
         this.animY = 0;
         this.uvScale = 64.0/1024.0;
         this.stunTimeStamp = -500; //don't stun at spawn
+        this.preStunAnimation = null;
+        this.stunAnimation = null;
+        this.bClearStunAnim = false;
 
         this.initStaticAnimations();
 
@@ -129,7 +138,15 @@ export class GameEntity extends DraggableSceneNode_Textured
         // logic and initialization
         ////////////////////////////////////////////////////////
         //set up automatic rendering
-        gamestate.renderList.push(this);
+
+        if (type != gamestate.CONST_PROP)
+        {
+            gamestate.renderList.push(this);   
+        }
+        else
+        {
+            gamestate.propRenderList.push(this);
+        }
     }
 
     setAnimation(gamestate, type, isGrab)
@@ -174,14 +191,15 @@ export class GameEntity extends DraggableSceneNode_Textured
         }
         else
         {
-            // FAIL SAFE
+            // FAIL SAFE, currently props
             this.setAnimationData(warrior_GrabbedAnim);
         }
     }
 
-    defeatKing()
+    tryDefeatKing()
     {
-        this.setAnimationData(king_DamagedAnim);
+        this.setDamage(1);
+        return this.hp <= 0;
     }
 
     tryCreateTextures()
@@ -192,10 +210,15 @@ export class GameEntity extends DraggableSceneNode_Textured
         }        
     }
 
-    setAnimationData(animData)
+    setAnimationData(animData, cachePreStun=true)
     {
         if(animData)
         {
+            if(cachePreStun)
+            {
+                this.preStunAnimation = animData;
+            }
+
             this.animationFrameIdx = 0;
             this.currentAnimationTickRateSecs = animData.frameTimeSec;
             this.framesInCurrentAnimation = animData.framesPerTexture;
@@ -220,7 +243,7 @@ export class GameEntity extends DraggableSceneNode_Textured
             warrior_WalkAnim_Back       = new AnimationTextureData(3,  0,  4,  0.1, staticTextures.amanda_texture.glTextureId);
             warrior_AttackAnim_Front    = null; //new AnimationTextureData();
             warrior_AttackAnim_Back     = null; //new AnimationTextureData();
-            warrior_DamagedAnim_Front   = null; //new AnimationTextureData();
+            warrior_DamagedAnim_Front   = new AnimationTextureData(2,  10,  2,  0.1, staticTextures.amanda_texture.glTextureId)
             warrior_DamagedAnim_Back    = null; //new AnimationTextureData();
             warrior_GrabbedAnim         = new AnimationTextureData(2,  5,  4,  0.1, staticTextures.amanda_texture.glTextureId);
             
@@ -236,13 +259,18 @@ export class GameEntity extends DraggableSceneNode_Textured
             mage_WalkAnim_Back          = new AnimationTextureData(1,  0,  4,  0.1, staticTextures.amanda_texture.glTextureId);
             mage_AttackAnim_Front       = null;//new AnimationTextureData();
             mage_AttackAnim_Back        = null;//new AnimationTextureData();
-            mage_DamagedAnim_Front      = null;//new AnimationTextureData();
+            mage_DamagedAnim_Front      = new AnimationTextureData(0,  10,  2,  0.1, staticTextures.amanda_texture.glTextureId);
             mage_DamagedAnim_Back       = null;//new AnimationTextureData();
             mage_GrabbedAnim            = new AnimationTextureData(0,  5,  4,  0.1, staticTextures.amanda_texture.glTextureId);
             
             king_WalkAnim_Front         = new AnimationTextureData(1,  0,  3,  0.1, staticTextures.stacey_texture.glTextureId);
             king_WalkAnim_Back          = new AnimationTextureData(3,  0,  3,  0.1, staticTextures.stacey_texture.glTextureId);
             king_DamagedAnim            = new AnimationTextureData(4,  0,  1,  0.1, staticTextures.stacey_texture.glTextureId);
+
+            prop_rockAnim            = new AnimationTextureData(7,  0,  3,  0.1, staticTextures.stacey_texture.glTextureId);
+            prop_bushAnim            = new AnimationTextureData(6,  0,  2,  0.1, staticTextures.stacey_texture.glTextureId);
+            prop_waterAnim            = new AnimationTextureData(5,  3,  3,  0.1, staticTextures.stacey_texture.glTextureId);
+            pencil_anim            = new AnimationTextureData(8,  3,  4,  0.075, staticTextures.stacey_texture.glTextureId);
 
 
             //debug set anim data
@@ -270,6 +298,10 @@ export class GameEntity extends DraggableSceneNode_Textured
             testAnims.push( king_WalkAnim_Front       );
             testAnims.push( king_WalkAnim_Back        );
             testAnims.push( king_DamagedAnim          );
+            testAnims.push(prop_rockAnim     );
+            testAnims.push(prop_bushAnim     );
+            testAnims.push(prop_waterAnim    );
+            testAnims.push(pencil_anim       );
         }
 
     }
@@ -292,9 +324,11 @@ export class GameEntity extends DraggableSceneNode_Textured
         ////////////////////////////////////////////////////////
         // Kinematics
         ////////////////////////////////////////////////////////
+        let isNotStunned = this.stunTimeStamp < this.gamestate.currentTimeSec - this.gamestate.CONST_STUN_TIME;
+
         if (!this.bDragging 
             && !this.bIsPaperEntity
-            && this.stunTimeStamp < this.gamestate.currentTimeSec - this.gamestate.CONST_STUN_TIME 
+            && isNotStunned
             ) // if not grabbed
         {
 
@@ -319,7 +353,13 @@ export class GameEntity extends DraggableSceneNode_Textured
             let newLocalPosition = vec3.add(vec3.create(), currentLocalPosition, deltaMovement);
             this.setLocalPosition(newLocalPosition);
         }
-    
+        
+        //reset animation after stun is up
+        if(this.bClearStunAnim && !this.isStunnedThisFrame && this.preStunAnimation && !this.markForDelete)
+        {
+            this.bClearStunAnim = false;
+            this.setAnimationData(this.preStunAnimation);
+        }
         
         ////////////////////////////////////////////////////////
         // animation
@@ -351,6 +391,12 @@ export class GameEntity extends DraggableSceneNode_Textured
     setDamage(amount)
     {
         this.stun();
+        if(this.stunAnimation)
+        {
+            this.setAnimationData(this.stunAnimation, false);
+            this.stun();
+            this.bClearStunAnim = true;
+        }
         this.hp -= amount;
         if(this.hp <= 0)
         {
@@ -371,7 +417,10 @@ export class GameEntity extends DraggableSceneNode_Textured
 
     die()
     {
-        this.markForDelete = true;
+        this.dead = true;
+        this.bDragging = false;
+        this.bEnableDrag = false;
+        this.speed = 0;
     }
 
     _createTextures(gl)
@@ -430,6 +479,11 @@ export class GameEntity extends DraggableSceneNode_Textured
         this.setAnimation(this.gamestate, this.gamestate.CONST_KING, false);
         this.speed = this.gamestate.CONST_KING_SPEED;
         this.movementDirection = vec3.fromValues(0, 1, 0);
+        this.hp = this.gamestate.CONST_KING_START_HP;
+
+        this.stunAnimation = king_DamagedAnim;
+        // this.setAnimationData(king_DamagedAnim, false);
+        // this.stun();
     }
 
     renderEntity(gamestate)
