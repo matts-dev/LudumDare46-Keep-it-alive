@@ -32,6 +32,7 @@ export class GameState
         this.CONST_PAPERTYPE = "Paper";
         this.CONST_PROP = "Prop";
         this.CONST_BACKGROUND = "Background";
+        this.CONST_BUTTONTYPE = "Button";
 
         this.CONST_ENABLE_DEBUG = true;
         this.CONST_PAPERSIZE = 10;
@@ -43,6 +44,7 @@ export class GameState
         this.CONST_FRIEND_START_HP = 3;
         this.CONST_KING_START_HP = 3;
         this.CONST_BUMP_ENEMY_OFFSET = 1;
+        this.CONST_SEPARATE_FACTOR = 1; //value of 1 does nothing
 
         ////////////////////////////////////////////////////////
         // rendering

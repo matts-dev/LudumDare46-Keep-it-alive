@@ -66,6 +66,8 @@ class Game
         this.textSceneNodeDemo.setLocalPosition(vec3.fromValues(0,-1,0));
         this.textSceneNodeDemo.setParent(this.draggableDemo);
 
+        this.scoreText = new TextBlockSceneNode(this.gl, this.bitmapFont, "Score:" );
+
         ///////////////////////////////////////////////////////////////////////////
         // Bind handlers to events
         ///////////////////////////////////////////////////////////////////////////
@@ -94,6 +96,7 @@ class Game
         this.lastKingPos = vec3.fromValues(0,0,0);
 
         this.resetButton = new GameButton("Restart?", this.gamestate, this.bitmapFont);
+        this.resetButton.setLocalPosition(vec3.fromValues(0,-50,0));
         this.resetButton.onClicked = this._initGame.bind(this);
 
         ////////////////////////////////////////////////////////
@@ -830,9 +833,16 @@ class Game
         }
 
         this.camera.tick(this.deltaSec);
-
         
-        this.resetButton.tick(this.gamestate);
+        if(this.gamestate.king.dead)
+        {
+            this.resetButton.bEnableDrag = true;
+            this.resetButton.tick(this.gamestate);
+        }
+        else
+        {
+            this.resetButton.bEnableDrag = false;
+        }
     }
 
     render(dt_ms)
@@ -900,8 +910,9 @@ class Game
             renderable.renderEntity(this.gamestate);
         }
 
-        if(true)//only render if king dead? and time passed?
+        if(this.gamestate.king.dead)
         {
+            //only render reset when game over
             this.resetButton.render(this.gamestate);
         }
     }

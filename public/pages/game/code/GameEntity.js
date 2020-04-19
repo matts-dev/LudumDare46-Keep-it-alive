@@ -158,6 +158,10 @@ export class GameEntity extends DraggableSceneNode_Textured
         {
             gamestate.backgroundRenderList.push(this);
         }
+        else if(type == gamestate.CONST_BUTTONTYPE)
+        {
+            //button type needs to be rendered manually!
+        }
         else
         {
             gamestate.renderList.push(this);   
@@ -332,7 +336,7 @@ export class GameEntity extends DraggableSceneNode_Textured
 
             prop_rockAnim            = new AnimationTextureData(7,  0,  3,  0.4, staticTextures.stacey_texture.glTextureId);
             prop_bushAnim            = new AnimationTextureData(6,  0,  2,  0.4, staticTextures.stacey_texture.glTextureId);
-            prop_waterAnim            = new AnimationTextureData(5,  3,  3,  0.4, staticTextures.stacey_texture.glTextureId);
+            prop_waterAnim            = new AnimationTextureData(5,  4,  2,  0.4, staticTextures.stacey_texture.glTextureId);
             prop_grassAnim          = new AnimationTextureData(8,  9,  2,  0.4, staticTextures.stacey_texture.glTextureId);
             pencil_anim            = new AnimationTextureData(8,  3,  4,  0.075, staticTextures.stacey_texture.glTextureId);
 

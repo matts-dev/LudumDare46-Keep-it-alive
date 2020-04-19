@@ -153,7 +153,7 @@ export class GameEntitySpawner
 
         // This should automatically add the prop to the prop render list in gamestate
         let newProp = new GameEntity(gamestate, gamestate.CONST_PROP);
-        newProp.setLocalPosition(vec3.fromValues(x + xOffset, y + yOffset, 0));
+        newProp.setLocalPosition(vec3.fromValues(x + xOffset * gamestate.CONST_SEPARATE_FACTOR, y + yOffset, 0));
         newProp.bEnableDrag = false;
         newProp.speed = 0;
         newProp.setLocalScale(scale);
