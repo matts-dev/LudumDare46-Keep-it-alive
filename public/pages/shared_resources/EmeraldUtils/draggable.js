@@ -49,6 +49,9 @@ export class DraggableSceneNode extends SceneNode
 
     v_rayHitTest(rayStart, rayDir){console.log("draggable did not implement hittest virtual", rayStart, rayDir)} //implement this to do hit tests
 
+    onDragStarted() {}
+    onDragStopped() {}
+
     notifyDeleted()
     {
         // if(this.bAutoRegisterHandlers && this.canvas && this.camera)
@@ -79,6 +82,8 @@ export class DraggableSceneNode extends SceneNode
                 let clientY = touch ? touch.clientY : e.clientY;
 
                 this.bDragging = true;
+                this.onDragStarted();
+
                 // if (e.changedTouches && e.changedTouches.length > 0) { this.trackedTouch = e.changedTouches[0]; }
                 this.trackedTouch = touch;
                 vec3.copy(this.draggingRightBasis,camera.right);
@@ -173,6 +178,7 @@ export class DraggableSceneNode extends SceneNode
             else
             {
                 this.bDragging = false;
+                this.onDragStopped();
             }
         }
     }
