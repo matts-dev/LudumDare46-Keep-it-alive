@@ -614,6 +614,29 @@ class Game
         gs.currentTimeSec += this.deltaSec;
 
         ////////////////////////////////////////////////////////
+        // set up filtered enemies for arrow
+        ////////////////////////////////////////////////////////
+        gs.filteredEnemyArchers = [];
+        gs.filteredEnemyWarriors = [];
+        gs.filteredEnemyMages = [];
+
+        for(let enemy of gs.enemyList)
+        {
+            if(enemy.type == gs.CONST_WARRIOR)
+            {
+                gs.filteredEnemyWarriors.push(enemy);
+            }
+            else if(enemy.type == gs.CONST_MAGE)
+            {
+                gs.filteredEnemyMages.push(enemy);
+            }
+            else if(enemy.type == gs.CONST_ARCHER)
+            {
+                gs.filteredEnemyArchers.push(enemy);
+            }
+        }
+
+        ////////////////////////////////////////////////////////
         // king
         gs.king.tick(gs);
         if(gs.king)
@@ -856,6 +879,7 @@ class Game
         // END CLEAN UP SECTION
         /////////////////////////////////////////////////////////////////////////////
 
+        
 
         this.bShowTestAnim = true;
         if(this.bShowTestAnim)

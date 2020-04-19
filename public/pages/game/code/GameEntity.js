@@ -5,7 +5,7 @@ import { f } from "../../shared_resources/EmeraldUtils/browser_key_codes.js";
 import * as EmeraldUtils from "../../shared_resources/EmeraldUtils/emerald-opengl-utils.js";
 import { texturedQuadFactory } from "../../shared_resources/EmeraldUtils/emerald_easy_shapes.js";
 
-import { mat4, vec3, vec4 } from "../../shared_resources/gl-matrix_esm/index.js";
+import { mat4, vec3, vec4, quat } from "../../shared_resources/gl-matrix_esm/index.js";
 
 let staticTextures = null;
 let staticTextureQuad = null;
@@ -50,6 +50,106 @@ const tileShader_fs = `
         }
     }
 `;
+
+
+    ////////////////////////////////////////////////////////
+    // CODE FROM C++ GAME UTILS
+    ////////////////////////////////////////////////////////
+    function float_equals(value, compareValue, epsilon = 0.001)
+    {
+        let delta = Math.abs(value - compareValue);
+        let result = delta < epsilon;
+        return result;
+    }
+
+    function vectorsAreSame(first,second,epsilon = 0.001)
+    {
+        return float_equals(first[0], second[0], epsilon)
+            && float_equals(first[1], second[1], epsilon)
+            && float_equals(first[2], second[2], epsilon);
+    }
+    function getDifferentVector(vec)
+    {
+        let x = vec[0];
+        let y = vec[1];
+        let z = vec[2];
+        if (x < y && x < z)
+        {
+            x = 1.0;
+        }
+        else if (y < x && y < z)
+        {
+            y = 1.0;
+        }
+        else if (z < x && z < y)
+        {
+            z = 1.0;
+        }
+        else //all are equal
+        {
+            if (x > 0.0)
+            {
+                x = -1;
+            }
+            else
+            {
+                x = 1;
+            }
+        }
+        return vec3.fromValues(x,y,z);
+    }
+
+    function clamp(val, min, max)
+    {
+        if(val < min)
+        {
+            return min;
+        }
+        if(val > max)
+        {
+            return max;
+        }
+        return val;
+    }
+
+    function getRotationBetweenVectors(from_n, to_n)
+    {
+        let rot = quat.identity(quat.create()); //unit quat
+
+        let cosTheta = clamp(vec3.dot(from_n, to_n), -1.0, 1.0); //clamp to be safe for acos
+
+        let bVectorsAre180 = float_equals(cosTheta, -1.0);
+        let bVectorsAreSame = float_equals(cosTheta, 1.0);
+
+        if (!bVectorsAreSame && !bVectorsAre180)
+        {
+            let rotAxis = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), from_n, to_n));
+            let rotAngle_rad = Math.acos(cosTheta);
+            rot = quat.setAxisAngle(quat.create(), rotAxis, rotAngle_rad);
+        }
+        else if (bVectorsAre180)
+        {
+            //if tail end and front of projectile are not the same, we need a 180 rotation around ?any? axis
+            let temp = getDifferentVector(from_n);
+
+            let bTemp180 = float_equals(clamp(vec3.dot(from_n, temp), -1.0, 1.0), -1.0);
+            if (bTemp180) { 
+                let offsetVec = vec3.fromValues(1,1,1);
+                temp = vec3.add(temp, temp, offsetVec);
+            }
+
+            let rotAxisFor180 = vec3.normalize(vec3.create() ,vec3.cross(vec3.create(), from_n, temp));
+
+            rot = quat.setAxisAngle(quat.create(), rotAxisFor180, 3.1415);
+        }
+
+        return rot;
+    }
+
+    ////////////////////////////////////////////////////////
+    // END CODE FROM C++ UTILS
+    ////////////////////////////////////////////////////////
+
 
 class AnimationTextureData
 {
@@ -97,10 +197,14 @@ let prop_waterAnim            = null;
 let prop_grassAnim            = null;
 
 let buttonAnimData            = null;
+let arrowAnimData            = null;
 
 let pencil_anim            = null;
 
+
 export let testAnims = [];
+
+let staticArrowRenderer = null;
 
 export class GameEntity extends DraggableSceneNode_Textured
 {
@@ -135,6 +239,15 @@ export class GameEntity extends DraggableSceneNode_Textured
         this.bClearStunAnim = false;
 
         this.initStaticAnimations();
+        if(!staticArrowRenderer)
+        {
+            staticArrowRenderer = "Hi, i'm a hack.";    //set to SOME value so we don't recurse to oblivion when creating the shared arrow entity; total hack
+            staticArrowRenderer = new GameEntity(gamestate, "ARROW");
+            staticArrowRenderer.setAnimationData(arrowAnimData);
+            staticArrowRenderer.setLocalScale(vec3.fromValues(0.25,0.25,0.25));
+            staticArrowRenderer.bEnableDrag = false;
+            staticArrowRenderer.speed = 0;
+        }
 
         if (type != gamestate.CONST_PROP)
         {
@@ -243,6 +356,7 @@ export class GameEntity extends DraggableSceneNode_Textured
     tryDefeatKing()
     {
         this.setDamage(1);
+        this.gamestate.score_since_king_damaged = 0;
 
         if(this.hp <= 0)
         {
@@ -341,6 +455,8 @@ export class GameEntity extends DraggableSceneNode_Textured
             pencil_anim            = new AnimationTextureData(8,  3,  4,  0.075, staticTextures.stacey_texture.glTextureId);
 
             buttonAnimData = new AnimationTextureData(2,  13,  3,  0.2, staticTextures.stacey_texture.glTextureId);
+
+            arrowAnimData = new AnimationTextureData(9,  0,  1,  0.2, staticTextures.stacey_texture.glTextureId);
 
             //debug set anim data
             testAnims.push( warrior_WalkAnim_Front    );
@@ -497,6 +613,7 @@ export class GameEntity extends DraggableSceneNode_Textured
         if (!this.isFriend)
         {
             this.gamestate.score++;
+            this.gamestate.score_since_king_damaged++;
             console.log(this.gamestate.score);
         }
     }
@@ -572,6 +689,43 @@ export class GameEntity extends DraggableSceneNode_Textured
     renderEntity(gamestate)
     {
         let gs = gamestate;
+
+        if(gs.CONST_ENABLE_ARROW)
+        {
+            let listToRenderTo = null;
+            if(this.type == gs.CONST_WARRIOR) { listToRenderTo = gs.filteredEnemyArchers;}
+            else if(this.type == gs.CONST_ARCHER) {listToRenderTo = gs.filteredEnemyMages;}
+            else if(this.type == gs.CONST_MAGE){listToRenderTo = gs.filteredEnemyWarriors;}
+            if(listToRenderTo && this.isFriend)
+            {
+                let myPos = vec3.create();
+                this.getLocalPosition(myPos);
+
+                let arrowDefaultDir = vec3.fromValues(1,0,0); //points in x dir
+
+                let enemyPos = vec3.create();
+                let vecToEnemy = vec3.create();
+                let offsetNodeVec = vec3.create();
+                let arrowPos = vec3.create();
+                for(let weakEnemy of listToRenderTo)
+                {
+                    if(weakEnemy) //not sure if it is possible to have null, but we tick this very early so one might have been cleaned up, best to check
+                    {
+                        weakEnemy.getLocalPosition(enemyPos);
+                        vec3.subtract(vecToEnemy, enemyPos, myPos);
+                        vec3.normalize(vecToEnemy, vecToEnemy);
+
+                        vec3.copy(offsetNodeVec, vecToEnemy);
+                        vec3.scale(offsetNodeVec, vecToEnemy, gs.CONST_ARROW_OFFSET);
+
+                        vec3.add(arrowPos, myPos, offsetNodeVec);
+                        staticArrowRenderer.setLocalPosition(arrowPos);
+                        staticArrowRenderer.setLocalRotation(getRotationBetweenVectors(arrowDefaultDir,vecToEnemy));
+                        staticArrowRenderer.renderEntity(gs);
+                    }
+                }
+            }
+        }
 
         if(gs.projectionMat && gs.viewMat)
         {
