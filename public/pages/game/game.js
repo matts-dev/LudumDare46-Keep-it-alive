@@ -632,7 +632,7 @@ class Game
                 let friendPosition = vec3.create();
                 friend.getLocalPosition(friendPosition);
                 let dist = vec3.distance(enemyPosition, friendPosition);
-                if (dist <= 1 && !enemy.markForDelete)
+                if (dist <= 1 && !enemy.dead)
                 {
                     // TODO: destroy the game entities that needs to be destroyed
                     if (enemy.type == gs.CONST_WARRIOR)
@@ -708,7 +708,7 @@ class Game
             enemy.getLocalPosition(enemyPosition);
 
             let dist = vec3.distance(enemyPosition, kingPosition);
-            if (dist <= 1 && !enemy.markForDelete)
+            if (dist <= 1 && !enemy.dead)
             {
                 if(!gs.king.tryDefeatKing())
                 {
@@ -722,9 +722,9 @@ class Game
         /////////////////////////////////////////////////////////////////////////////
 
         /////////////////////////////////////////////////////////////////////////////
-        // game entity clean up section
+        // CLEAN UP SECTION
 
-        // mark game entites for deletion
+        // mark game entities for deletion
 
         for(let friend of gs.friendList)
         {
@@ -735,8 +735,8 @@ class Game
                 friend.markForDelete = true;
             }
         }
-
-        for(let enemy of gs.friendList)
+        
+        for(let enemy of gs.enemyList)
         {
             let enemyPosition = vec3.create();
             enemy.getLocalPosition(enemyPosition);
@@ -758,23 +758,37 @@ class Game
             }
         }
 
-        // actually delete game entites
+        // update friend and enemy list for gameplay
 
         let updatedFriendList = [];
         for(let friend of gs.friendList)
         {
-            if (!friend.markForDelete)
+            if (!friend.dead)
             {
                 updatedFriendList.push(friend);
             }
         }
+        gs.friendList = updatedFriendList;
 
         let updatedEnemyList = [];
-        for (let enemy of gs.enemyList)
+        for(let enemy of gs.enemyList)
         {
-            if (!enemy.markForDelete)
+            if (!enemy.dead)
             {
                 updatedEnemyList.push(enemy);
+            }
+        }
+
+        gs.friendList = updatedFriendList;
+        gs.enemyList = updatedEnemyList;
+
+        // actually delete game entites
+        let newRenderList= [];
+        for (let entity of gs.renderList)
+        {
+            if (!entity.markForDelete)
+            {
+                newRenderList.push(entity);
             }
         }
 
@@ -787,10 +801,10 @@ class Game
             }
         }
 
-        //gs.propRenderList = updatedPropRenderList;
-        //gs.renderList = updatedFriendList + updatedEnemyList;
+        gs.propRenderList = updatedPropRenderList;
+        gs.renderList = newRenderList;
 
-        // end game entity clean up section
+        // END CLEAN UP SECTION
         /////////////////////////////////////////////////////////////////////////////
 
 
