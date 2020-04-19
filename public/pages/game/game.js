@@ -66,8 +66,6 @@ class Game
         this.textSceneNodeDemo.setLocalPosition(vec3.fromValues(0,-1,0));
         this.textSceneNodeDemo.setParent(this.draggableDemo);
 
-        this.scoreText = new TextBlockSceneNode(this.gl, this.bitmapFont, "Score:" );
-
         ///////////////////////////////////////////////////////////////////////////
         // Bind handlers to events
         ///////////////////////////////////////////////////////////////////////////
@@ -95,16 +93,46 @@ class Game
         this.gamestate.king.makeKingEntity();
         this.lastKingPos = vec3.fromValues(0,0,0);
 
+        //reset button
         this.resetButton = new GameButton("Restart?", this.gamestate, this.bitmapFont);
         this.resetButton.setLocalPosition(vec3.fromValues(0,-50,0));
         this.resetButton.onClicked = this._initGame.bind(this);
 
+        //position holder
+        this.positionHolder = new GameButton("DONT RENDER THIS", this.gamestate, this.bitmapFont);
+        this.positionHolder.buttomCameraOffsetY = 0;
+        
+        this.scoreText = new TextBlockSceneNode(this.gl, this.bitmapFont, "Score:" );
+        this.scoreText.setParent(this.positionHolder);
+        this.scoreText.setLocalScale(vec3.fromValues(10,10,10));
+        this.scoreText.setLocalPosition(vec3.fromValues(-6.5, 4.5, 0));
+
+
+        this.mageHint = new TextBlockSceneNode(this.gl, this.bitmapFont, "Mage beats Warrior!" );
+        this.mageHint.setParent(this.positionHolder);
+        this.mageHint.setLocalScale(vec3.fromValues(10,10,10));
+        this.mageHint.setLocalPosition(vec3.fromValues(0, 3, 0));
+        
+        this.archerHint = new TextBlockSceneNode(this.gl, this.bitmapFont, "Archer beats Mage!" );
+        this.archerHint.setParent(this.positionHolder);
+        this.archerHint.setLocalScale(vec3.fromValues(10,10,10));
+        this.archerHint.setLocalPosition(vec3.fromValues(0, 2.5, 0));
+        
+        this.warriorHint = new TextBlockSceneNode(this.gl, this.bitmapFont, "Warrior beats Archer!" );
+        this.warriorHint.setParent(this.positionHolder);
+        this.warriorHint.setLocalScale(vec3.fromValues(10,10,10));
+        this.warriorHint.setLocalPosition(vec3.fromValues(0, 2.0, 0));
+
+        this.catHint = new TextBlockSceneNode(this.gl, this.bitmapFont, "PROTECT THE CAT!" );
+        this.catHint.setParent(this.positionHolder);
+        this.catHint.setLocalScale(vec3.fromValues(10,10,10));
+        this.catHint.setLocalPosition(vec3.fromValues(0, 1.5, 0));
         ////////////////////////////////////////////////////////
         // debug
         ////////////////////////////////////////////////////////
         this.testAnimEntity = new GameEntity(this.gamestate);
         this.testAnimEntity.setLocalPosition(vec3.fromValues(5, -20, 0)); //easter egg
-        this.testAnimEntity.setLocalPosition(vec3.fromValues(5, -0, 0)); //test
+        // this.testAnimEntity.setLocalPosition(vec3.fromValues(5, -0, 0)); //test
         this.testAnimEntity.setLocalScale(vec3.fromValues(3, 3, 3));
         this.testAnimIndex = 0;
 
@@ -629,6 +657,10 @@ class Game
             prop.tick(gs);
         }
 
+        // UI ticks
+        this.scoreText.wrappedText.text = "Score: " + gs.score.toString();
+
+
         /////////////////////////////////////////////////////////////////////////////
         // collison section
         // warrior beats archer
@@ -833,6 +865,8 @@ class Game
         }
 
         this.camera.tick(this.deltaSec);
+
+        this.positionHolder.tick(this.gamestate);
         
         if(this.gamestate.king.dead)
         {
@@ -848,6 +882,7 @@ class Game
     render(dt_ms)
     {
         let gl = this.gl;
+        let gs = this.gamestate;
         gl.enable(gl.DEPTH_TEST); 
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -914,6 +949,24 @@ class Game
         {
             //only render reset when game over
             this.resetButton.render(this.gamestate);
+        }
+        this.scoreText.render(this.gamestate.projectionMat, this.gamestate.viewMat);
+
+        if(gs.currentTimeSec > gs.CONST_MAGE_HINT_START_TIME &&  gs.currentTimeSec < gs.CONST_MAGE_HINT_END_TIME)
+        {
+            this.mageHint.render(gs.projectionMat, gs.viewMat);
+        }
+        if(gs.currentTimeSec > gs.CONST_ARCHER_HINT_START_TIME &&  gs.currentTimeSec < gs.CONST_ARCHER_HINT_END_TIME)
+        {
+            this.archerHint.render(gs.projectionMat, gs.viewMat);
+        }
+        if(gs.currentTimeSec > gs.CONST_WARRIOR_HINT_START_TIME &&  gs.currentTimeSec < gs.CONST_WARRIOR_HINT_END_TIME)
+        {
+            this.warriorHint.render(gs.projectionMat, gs.viewMat);
+        }
+        if(gs.currentTimeSec > gs.CONST_CAT_HINT_START_TIME &&  gs.currentTimeSec < gs.CONST_CAT_HINT_END_TIME)
+        {
+            this.catHint.render(gs.projectionMat, gs.viewMat);
         }
     }
 }
