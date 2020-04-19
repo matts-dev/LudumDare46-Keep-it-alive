@@ -14,6 +14,7 @@ export class GameState
         this.currentTimeSec = 0;
         this.entitySpawner = null;
         this.king = null;
+        this.score = 0;
 
         ////////////////////////////////////////////////////////
         // HELPERS
@@ -30,8 +31,9 @@ export class GameState
         this.CONST_KING = "King";
         this.CONST_PAPERTYPE = "Paper";
         this.CONST_PROP = "Prop";
+        this.CONST_BACKGROUND = "Background";
 
-        this.CONST_ENABLE_DEBUG = false;
+        this.CONST_ENABLE_DEBUG = true;
         this.CONST_PAPERSIZE = 10;
         this.CONST_KING_SPEED = 1;
         this.CONST_ENEMY_SPEED = 1.1;
@@ -49,6 +51,7 @@ export class GameState
         this.viewMat = null;
         this.renderList = [];
         this.propRenderList = [];
+        this.backgroundRenderList = [];
     }
 
     init()
@@ -56,8 +59,36 @@ export class GameState
         ////////////////////////////////////////////////////////
         // extra logic, try to avoid spawning stuff here; do in other classes
         ////////////////////////////////////////////////////////
+
+        /*
+
+        // reset
+        this.dt_sec = 0;
+        this.friendList = [];
+        this.enemyList = [];
+        this.currentTimeSec = 0;
+        this.king = null;
+
+        this.renderList = [];
+        this.propRenderList = [];
+
+        // setup
+        this.king = new GameEntity(this, this.CONST_KING);
+        this.king.makeKingEntity();
+        */
+
     }
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

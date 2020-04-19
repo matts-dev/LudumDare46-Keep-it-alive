@@ -18,19 +18,37 @@ nice to haves:
     -easier spawn?
     -colors
 
+
+
+
+-------------------------------------------------------------------
+
+
+
+
+
+stacey
+    -button art
+    sound
+        -gameover toliet flush sound
+        -ting
+        -oof
+
 jake:
-    x-change move vector to be towards king when passed certain y threshold
-    x-make enemys run at king if at king's y value
-        -new state: chase king!
-            -updates move vector to be = normalize(kingPos - enemyPos);
-    x-spawn friends closer, potentially right in front
+    -reset gamestate (new gamestate)
+        -make function in game.js to redo the startup, this happens before tick
+    score
+        -timer? reflecting gamestate
+        -kill count?
 
 matt:
-    -stop drag when things are killed
-    x-side paper
-    -pick up shows dangly legs, then drop returns
-    -in camera tick, read bool to not listen to input (so we don't have ability to walk/run)
-
+    -intrudction
+        warrior beats
+        archer beats 
+        mage beats
+    -protect kitty 
+    -game over reset button
+    -play audio files
 
     
 

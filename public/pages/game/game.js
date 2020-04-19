@@ -11,6 +11,7 @@ import {TextBlockSceneNode} from "../shared_resources/EmeraldUtils/BitmapFontRen
 import {GameState} from "./code/gamestate.js"
 import { GameEntitySpawner } from "./code/GameEntitySpawner.js";
 import {GameEntity, testAnims} from "./code/GameEntity.js";
+import { GameButton } from "./code/GameButton.js";
 
 
 //////////////////////////////////////////////////////
@@ -58,7 +59,7 @@ class Game
 
         //subclass draggableSceneNode to define custom textures.
         this.draggableDemo = new DraggableSceneNode_Textured(this.gl, true, this.glCanvas, this.camera);
-        this.bitmapFont = new Montserrat_BMF(this.gl, "../shared_resources/Textures/Fonts/Montserrat_ss_alpha_1024x1024_wb.png");
+        this.bitmapFont = new Montserrat_BMF(this.gl, "../shared_resources/Textures/Fonts/Montserrat_ss_alpha_1024x1024_wb_invert.png");
 
         this.textSceneNodeDemo = new TextBlockSceneNode(this.gl, this.bitmapFont, "This is a text scene node; it is a child of draggable above!" );
         this.textSceneNodeDemo.setLocalScale(vec3.fromValues(10,10,10));
@@ -70,7 +71,12 @@ class Game
         ///////////////////////////////////////////////////////////////////////////
         this._bindCallbacks();
 
+        this._initGame();
+        
+    }
 
+    _initGame()
+    {
         ////////////////////////////////////////////////////////
         // initialize game state
         ////////////////////////////////////////////////////////
@@ -78,7 +84,7 @@ class Game
         this.gamestate.canvas = this.glCanvas;
         this.gamestate.gl = this.gl;
         this.gamestate.camera = this.camera;
-        
+
         this._setupPaperBG(); //init before anything can so paper can be in the background
 
         //init after set up 
@@ -86,6 +92,9 @@ class Game
         this.gamestate.king = new GameEntity(this.gamestate, this.gamestate.CONST_KING);
         this.gamestate.king.makeKingEntity();
         this.lastKingPos = vec3.fromValues(0,0,0);
+
+        this.resetButton = new GameButton("Restart?", this.gamestate, this.bitmapFont);
+        this.resetButton.onClicked = this._initGame.bind(this);
 
         ////////////////////////////////////////////////////////
         // debug
@@ -115,6 +124,11 @@ class Game
         this.gamestate.entitySpawner.spawnFriend(this.gamestate, this.gamestate.CONST_ARCHER);
         //this.gamestate.entitySpawner.spawnFriend(this.gamestate, this.gamestate.CONST_ARCHER);
         //this.gamestate.entitySpawner.spawnFriend(this.gamestate, this.gamestate.CONST_ARCHER);
+    }
+
+    _resetGame()
+    {
+
     }
 
     _setupPaperBG()
@@ -816,6 +830,9 @@ class Game
         }
 
         this.camera.tick(this.deltaSec);
+
+        
+        this.resetButton.tick(this.gamestate);
     }
 
     render(dt_ms)
@@ -869,6 +886,10 @@ class Game
         ////////////////////////////////////////////////////////
         // Render all renables
         ////////////////////////////////////////////////////////
+        for(let bg of this.gamestate.backgroundRenderList)
+        {
+            bg.renderEntity(this.gamestate);
+        }
         for (let renderable of this.gamestate.propRenderList)
         {
             renderable.renderEntity(this.gamestate);
@@ -877,6 +898,11 @@ class Game
         for(let renderable of this.gamestate.renderList)
         {
             renderable.renderEntity(this.gamestate);
+        }
+
+        if(true)//only render if king dead? and time passed?
+        {
+            this.resetButton.render(this.gamestate);
         }
     }
 }
