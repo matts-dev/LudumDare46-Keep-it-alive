@@ -7,11 +7,17 @@ function GetRandomInt(max)
     return Math.floor(Math.random() * Math.floor(max));
 }
 
+function GetRandomNumberInRange(min, max)
+{  
+    return Math.floor(Math.random() * (max - min) + min);
+}  
+
 export class GameEntitySpawner
 {
     constructor(gamestate) 
     {
         this.lastSpawnTime = 0;
+        this.chosenFriendPositionsX = [];
     }
 
     tick(gamestate)
@@ -24,7 +30,7 @@ export class GameEntitySpawner
             return;
         }
         
-        if(this.lastSpawnTime + 1.0 < gamestate.currentTimeSec)
+        if(this.lastSpawnTime + 4.0 < gamestate.currentTimeSec)
         {
             let typeToSpawn = "invalid";
             let friendIndex = GetRandomInt(gamestate.friendList.length);
@@ -77,12 +83,30 @@ export class GameEntitySpawner
 
     spawnFriend(gamestate, type)
     {
-        let cam = gamestate.camera;
-        let x = cam.position[0];
-        let y = cam.position[1];
+        //let cam = gamestate.camera;
+        //let x = cam.position[0];
+        //let y = cam.position[1];
 
-        let xOffset = GetRandomInt(11) - 5;
-        let yOffset = GetRandomInt(6);
+        let kingPosition = vec3.create();
+        gamestate.king.getLocalPosition(kingPosition);
+
+        let x = kingPosition[0];
+        let y = kingPosition[1];
+
+        let xOffset = GetRandomNumberInRange(-3, 3);
+        let attempts = 0;
+        while (this.chosenFriendPositionsX.includes(xOffset) && attempts <= 10)
+        {
+            xOffset = GetRandomNumberInRange(-3, 3);
+            attempts++;
+            //console.log("Choosing another friend spawn spot:", xOffset, this.chosenFriendPositionsX);
+        }
+        this.chosenFriendPositionsX.push(xOffset);
+
+        let yOffset = 2;
+
+        console.log("Spawned friendly with offset X:", xOffset);
+
 
         let newFriend = new GameEntity(gamestate, type);
         newFriend.setLocalPosition(vec3.fromValues(x + xOffset, y + yOffset, /*z*/ 0));

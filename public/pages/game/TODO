@@ -1,35 +1,36 @@
 unclaimed
-    -in camera tick, read bool to not listen to input (so we don't have ability to walk/run)
     -disable the debug animation (there is a flag for this in game.js); probably leave up for now
     -animation selection
         -damage event shows hurt, then goes back
-        -pick up shows dangly legs, then drop returns
-    -change move vector to be towards king when passed certain y threshold
     -add audio events??? music tool can be a reference here; but an esoteric one
     -set up remaining animations? this will be clearer once game is running
     -clean up enemy when die?
 
-
     -prop entity - gameenitytspawner should do this in tick
     -prop entity clean up after passes off bottom screen
-    -side paper
-    -spawn friends closer, potentially right in front
     -slow enimies
     -spawn rate
         -variable rate spawning??? do well you get faster enemies, lose a guy, slows down
     -youlose / restart
         -audio
-    -move king to bottom
-    -stop drag when things are killed
 nice to haves:
     -pencil death animation
     -easier spawn?
+    -colors
 
 jake:
+    x-change move vector to be towards king when passed certain y threshold
+    x-make enemys run at king if at king's y value
+        -new state: chase king!
+            -updates move vector to be = normalize(kingPos - enemyPos);
+    -spawn friends closer, potentially right in front
 
 matt:
+    -stop drag when things are killed
+    x-side paper
+    -pick up shows dangly legs, then drop returns
+    -in camera tick, read bool to not listen to input (so we don't have ability to walk/run)
 
-    -background tile up 
 
     
 
