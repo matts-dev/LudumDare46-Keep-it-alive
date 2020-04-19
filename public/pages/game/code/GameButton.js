@@ -16,7 +16,7 @@ export class GameButton extends DraggableSceneNode_Textured
         this.textSceneNodeDemo.setLocalPosition(vec3.fromValues(0,0,0));
         this.textSceneNodeDemo.setParent(this);
 
-        this.backgroundImage = new GameEntity(gamestate, "BUTTON");
+        this.backgroundImage = new GameEntity(gamestate, gamestate.CONST_BUTTONTYPE);
         this.backgroundImage.bEnableDrag = false;
         this.backgroundImage.setTextureToButton();
         this.backgroundImage.setParent(this);
