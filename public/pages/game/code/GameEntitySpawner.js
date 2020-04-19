@@ -22,16 +22,18 @@ export class GameEntitySpawner
 
     tick(gamestate)
     {   
-
-        if (gamestate.friendList.length <= 0)
-        {
-            // early out
-            this.lastSpawnTime = gamestate.currentTimeSec;
-            return;
-        }
-        
         if(this.lastSpawnTime + 4.0 < gamestate.currentTimeSec)
         {
+            if (gamestate.friendList.length <= 0)
+            {
+                // early out
+                this.lastSpawnTime = gamestate.currentTimeSec;
+                return;
+            }
+            
+            //this.spawnProp();
+
+
             let typeToSpawn = "invalid";
             let friendIndex = GetRandomInt(gamestate.friendList.length);
             let chosenFriend = gamestate.friendList[friendIndex];
@@ -64,7 +66,8 @@ export class GameEntitySpawner
                     // let z = cam.position[2];
 
                     //let xOffset = GetRandomInt(11) - 5;
-                    let yOffset = 15;
+                    // let yOffset = 15;
+                    let yOffset = gamestate.CONST_SPAWN_Y_OFFSET;
 
                     let newEnemy = new GameEntity(gamestate, typeToSpawn);
                     newEnemy.setLocalPosition(vec3.fromValues(x, y + yOffset, /*z*/ 0));
@@ -109,8 +112,23 @@ export class GameEntitySpawner
 
 
         let newFriend = new GameEntity(gamestate, type);
+        newFriend.hp = gamestate.CONST_FRIEND_START_HP
         newFriend.setLocalPosition(vec3.fromValues(x + xOffset, y + yOffset, /*z*/ 0));
         gamestate.friendList.push(newFriend);
+    }
+
+    spawnProp(gamestate)
+    {
+        let kingPosition = vec3.create();
+        gamestate.king.getLocalPosition(kingPosition);
+
+        xOffset = GetRandomNumberInRange(-5, 5);
+        yOffset = 10;
+
+        // This should automatically add the prop to the prop render list in gamestate
+        let newProp = new GameEntity(gamestate, gamestate.CONST_PROP);
+        newProp.setLocalPosition(vec3.fromValues(kingPosition[0] + xOffset, kingPosition[1] + yOffset, 0));
+        newProp.bEnableDrag = false;
     }
 
 

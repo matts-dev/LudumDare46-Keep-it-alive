@@ -23,7 +23,7 @@ jake:
     x-make enemys run at king if at king's y value
         -new state: chase king!
             -updates move vector to be = normalize(kingPos - enemyPos);
-    -spawn friends closer, potentially right in front
+    x-spawn friends closer, potentially right in front
 
 matt:
     -stop drag when things are killed

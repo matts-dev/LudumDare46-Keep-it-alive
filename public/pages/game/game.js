@@ -91,7 +91,8 @@ class Game
         // debug
         ////////////////////////////////////////////////////////
         this.testAnimEntity = new GameEntity(this.gamestate);
-        this.testAnimEntity.setLocalPosition(vec3.fromValues(5, -9, 0));
+        this.testAnimEntity.setLocalPosition(vec3.fromValues(5, -20, 0)); //easter egg
+        this.testAnimEntity.setLocalPosition(vec3.fromValues(5, -0, 0)); //test
         this.testAnimEntity.setLocalScale(vec3.fromValues(3, 3, 3));
         this.testAnimIndex = 0;
 
@@ -606,11 +607,22 @@ class Game
             enemy.tick(gs);
         }
 
+        for (let prop of gs.propRenderList)
+        {
+            prop.tick(gs);
+        }
+
         /////////////////////////////////////////////////////////////////////////////
         // collison section
         // warrior beats archer
         // archer beats mage
         // mage beats warrior
+        let offsetEnemyLambda = function(enemy, gamestate){
+            let enemyPos = vec3.create();
+            enemy.getLocalPosition(enemyPos);
+            enemyPos[1]+= gamestate.CONST_BUMP_ENEMY_OFFSET;
+            enemy.setLocalPosition(enemyPos);
+        };
         for(let enemy of gs.enemyList)
         {
             let enemyPosition = vec3.create();
@@ -620,7 +632,7 @@ class Game
                 let friendPosition = vec3.create();
                 friend.getLocalPosition(friendPosition);
                 let dist = vec3.distance(enemyPosition, friendPosition);
-                if (dist <= 1)
+                if (dist <= 1 && !enemy.markForDelete)
                 {
                     // TODO: destroy the game entities that needs to be destroyed
                     if (enemy.type == gs.CONST_WARRIOR)
@@ -629,6 +641,7 @@ class Game
                         {
                             friend.setDamage(1)
                             enemy.notify_thisGuyJustAttacked();
+                            offsetEnemyLambda(enemy, this.gamestate);
                         }
                         else if (friend.type == gs.CONST_MAGE)
                         {
@@ -639,6 +652,7 @@ class Game
                         {
                             friend.setDamage(1)
                             enemy.setDamage(1);
+                            offsetEnemyLambda(enemy, this.gamestate);
                         }
                     }
                     else if (enemy.type == gs.CONST_ARCHER)
@@ -647,6 +661,7 @@ class Game
                         {
                             friend.setDamage(1)
                             enemy.notify_thisGuyJustAttacked();
+                            offsetEnemyLambda(enemy, this.gamestate);
                         }
                         else if (friend.type == gs.CONST_WARRIOR)
                         {
@@ -657,6 +672,7 @@ class Game
                         {
                             friend.setDamage(1)
                             enemy.setDamage(1);
+                            offsetEnemyLambda(enemy, this.gamestate);
                         }
                     }
                     else if (enemy.type == gs.CONST_MAGE)
@@ -665,6 +681,7 @@ class Game
                         {
                             friend.setDamage(1);
                             enemy.notify_thisGuyJustAttacked();
+                            offsetEnemyLambda(enemy, this.gamestate);
                         }
                         else if (friend.type == gs.CONST_ARCHER)
                         {
@@ -675,28 +692,73 @@ class Game
                         {
                             friend.setDamage(1);
                             enemy.setDamage(1);
+                            offsetEnemyLambda(enemy, this.gamestate);
                         }
                     }
                 }
             }
         }
 
+        let kingPosition = vec3.create();
+        gs.king.getLocalPosition(kingPosition);
+
         for(let enemy of gs.enemyList)
         {
             let enemyPosition = vec3.create();
             enemy.getLocalPosition(enemyPosition);
 
-            let kingPosition = vec3.create();
-            gs.king.getLocalPosition(kingPosition);
-
             let dist = vec3.distance(enemyPosition, kingPosition);
-            if (dist <= 1)
+            if (dist <= 1 && !enemy.markForDelete)
             {
-                gs.king.speed = 0;
-                gs.king.defeatKing();
+                if(!gs.king.tryDefeatKing())
+                {
+                    //did not default, king defeats this unit
+                    enemy.setDamage(100);
+                }
             }
         }
 
+        // end collision section
+        /////////////////////////////////////////////////////////////////////////////
+
+        /////////////////////////////////////////////////////////////////////////////
+        // game entity clean up section
+
+        // mark game entites for deletion
+
+        for(let friend of gs.friendList)
+        {
+            let friendPosition = vec3.create();
+            friend.getLocalPosition(friendPosition);
+            if (friend.dead && friendPosition[1] <= kingPosition[1] - 15)
+            {
+                friend.markForDelete = true;
+            }
+        }
+
+        for(let enemy of gs.friendList)
+        {
+            let enemyPosition = vec3.create();
+            enemy.getLocalPosition(enemyPosition);
+
+            if (enemy.dead && enemyPosition[1] <= kingPosition[1] - 15)
+            {
+                enemy.markForDelete = true;
+            }
+        }
+
+        for (let prop of gs.propRenderList)
+        {
+            let propPosition = vec3.create();
+            prop.getLocalPosition(propPosition);
+            
+            if (propPosition[1] <= kingPosition[1] - 15)
+            {
+                prop.markForDelete = true;
+            }
+        }
+
+        // actually delete game entites
 
         let updatedFriendList = [];
         for(let friend of gs.friendList)
@@ -716,10 +778,21 @@ class Game
             }
         }
 
-        gs.enemyList = updatedEnemyList;
-        gs.friendList = updatedFriendList;
-        // end collision section
+        let updatedPropRenderList = [];
+        for (let prop of gs.propRenderList)
+        {
+            if (!prop.markForDelete)
+            {
+                updatedPropRenderList.push(prop);
+            }
+        }
+
+        //gs.propRenderList = updatedPropRenderList;
+        //gs.renderList = updatedFriendList + updatedEnemyList;
+
+        // end game entity clean up section
         /////////////////////////////////////////////////////////////////////////////
+
 
         this.bShowTestAnim = true;
         if(this.bShowTestAnim)
@@ -782,11 +855,15 @@ class Game
         ////////////////////////////////////////////////////////
         // Render all renables
         ////////////////////////////////////////////////////////
-        for(let renderable of this.gamestate.renderList)
+        for (let renderable of this.gamestate.propRenderList)
         {
             renderable.renderEntity(this.gamestate);
         }
 
+        for(let renderable of this.gamestate.renderList)
+        {
+            renderable.renderEntity(this.gamestate);
+        }
     }
 }
 

@@ -37,6 +37,10 @@ export class GameState
         this.CONST_ENEMY_SPEED = 1.1;
         this.CONST_CAMERA_KING_Y_OFFSET = 3;
         this.CONST_STUN_TIME = 0.2;
+        this.CONST_SPAWN_Y_OFFSET = 7;
+        this.CONST_FRIEND_START_HP = 3;
+        this.CONST_KING_START_HP = 3;
+        this.CONST_BUMP_ENEMY_OFFSET = 1;
 
         ////////////////////////////////////////////////////////
         // rendering
@@ -44,6 +48,7 @@ export class GameState
         this.projectionMat = null;
         this.viewMat = null;
         this.renderList = [];
+        this.propRenderList = [];
     }
 
     init()
