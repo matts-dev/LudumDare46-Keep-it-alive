@@ -26,6 +26,18 @@ export class GameEntitySpawner
         {
             if (gamestate.friendList.length <= 0)
             {
+                // spawn in random areas to try and destroy the king
+                let kingPosition = vec3.create();
+                gamestate.king.getLocalPosition(kingPosition);
+
+                let x = kingPosition[0];
+                let y = kingPosition[1];
+
+                let xOffset = GetRandomNumberInRange(-5, 5);
+                let yOffset = gamestate.CONST_SPAWN_Y_OFFSET;
+
+                let randomType = GetRandomNumberInRange(0, 2);
+
                 // early out
                 this.lastSpawnTime = gamestate.currentTimeSec;
                 return;
@@ -86,10 +98,6 @@ export class GameEntitySpawner
 
     spawnFriend(gamestate, type)
     {
-        //let cam = gamestate.camera;
-        //let x = cam.position[0];
-        //let y = cam.position[1];
-
         let kingPosition = vec3.create();
         gamestate.king.getLocalPosition(kingPosition);
 
