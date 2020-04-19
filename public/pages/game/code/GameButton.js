@@ -53,5 +53,6 @@ export class GameButton extends DraggableSceneNode_Textured
         this.textSceneNodeDemo.render( gamestate.projectionMat, gamestate.viewMat);
 
         this.backgroundImage.renderEntity(gamestate);
+        this.backgroundImage.renderEntity(gamestate); //make it darks
     }
 }
