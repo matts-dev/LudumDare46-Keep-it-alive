@@ -22,6 +22,8 @@ export class GameState
         this.kingMoveDeltaX = 0.0; //used to fix dragable offset issues while camera moving
         this.kingMoveDeltaY = 0.0; //used to fix dragable offset issues while camera moving
 
+        this.score_since_king_damaged = 0;
+
         ////////////////////////////////////////////////////////
         // constants
         ////////////////////////////////////////////////////////
@@ -34,7 +36,13 @@ export class GameState
         this.CONST_BACKGROUND = "Background";
         this.CONST_BUTTONTYPE = "Button";
 
+        this.CONST_SPAWN_SLOWEST = 4.0;
+        this.CONST_SPAWN_FASTEST = 1.5
+        this.MAX_SPEED_KILL_COUNT = 10;
+
         this.CONST_ENABLE_DEBUG = true;
+        this.CONST_ENABLE_ARROW = true;
+        this.CONST_ARROW_OFFSET = 0.75;
         this.CONST_PAPERSIZE = 10;
         this.CONST_KING_SPEED = 1;
         this.CONST_ENEMY_SPEED = 1.1;
@@ -56,6 +64,10 @@ export class GameState
         this.CONST_ARCHER_HINT_END_TIME = 4.0;
         this.CONST_WARRIOR_HINT_END_TIME = 4.5;
         this.CONST_CAT_HINT_END_TIME = 5.0;
+
+        this.filteredEnemyArchers = [];
+        this.filteredEnemyWarriors = [];
+        this.filteredEnemyMages = [];
 
         ////////////////////////////////////////////////////////
         // rendering
