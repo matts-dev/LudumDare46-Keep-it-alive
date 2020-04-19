@@ -60,6 +60,8 @@ class AnimationTextureData
         this.framesPerTexture = framesPerTexture;
         this.frameTimeSec = frameTimeSec;
         this.srcTexture = srcTexture;
+        this.hp = 1;
+        this.stunTimeStamp = -100; //don't stun at start
     }
 }
 
@@ -108,6 +110,7 @@ export class GameEntity extends DraggableSceneNode_Textured
         this.movementDirection = vec3.fromValues(0, 1, 0);
         this.markForDelete = false;
         this.gamestate = gamestate; //just caching this because it is easier for now! gamejam hacks!
+        this.hp = 1;
 
         this.currentAnimationTickRateSecs = 0.1;
         this.framesInCurrentAnimation = 4;
@@ -116,6 +119,7 @@ export class GameEntity extends DraggableSceneNode_Textured
         this.animX = 1;
         this.animY = 0;
         this.uvScale = 64.0/1024.0;
+        this.stunTimeStamp = -500; //don't stun at spawn
 
         this.initStaticAnimations();
 
@@ -290,11 +294,28 @@ export class GameEntity extends DraggableSceneNode_Textured
         ////////////////////////////////////////////////////////
         if (!this.bDragging 
             && !this.bIsPaperEntity
+            && this.stunTimeStamp < this.gamestate.currentTimeSec - this.gamestate.CONST_STUN_TIME 
             ) // if not grabbed
         {
-            let deltaMovement  = vec3.scale(vec3.create(), this.movementDirection, this.speed * gamestate.dt_sec);
+
             let currentLocalPosition = vec3.create();
             this.getLocalPosition(currentLocalPosition);
+
+            if (!this.isFriend)
+            {
+                let kingPosition = vec3.create();
+                gamestate.king.getLocalPosition(kingPosition);
+                
+                if (currentLocalPosition[1] <= kingPosition[1])
+                {
+                    let result = vec3.create();
+                    vec3.subtract(result, kingPosition, currentLocalPosition);
+                    vec3.normalize(result, result);
+                    this.movementDirection = result;
+                }
+            }
+
+            let deltaMovement  = vec3.scale(vec3.create(), this.movementDirection, this.speed * gamestate.dt_sec);
             let newLocalPosition = vec3.add(vec3.create(), currentLocalPosition, deltaMovement);
             this.setLocalPosition(newLocalPosition);
         }
@@ -325,6 +346,32 @@ export class GameEntity extends DraggableSceneNode_Textured
                 this.setLocalPosition(myPos);
             }
         }
+    }
+
+    setDamage(amount)
+    {
+        this.stun();
+        this.hp -= amount;
+        if(this.hp <= 0)
+        {
+            this.die();
+        }
+    }
+
+    notify_thisGuyJustAttacked()
+    {
+        //may need to make sure we tick entities after collision is done so stun will apply before move
+        this.stun();
+    }
+
+    stun()
+    {
+        this.stunTimeStamp = this.gamestate.currentTimeSec;
+    }
+
+    die()
+    {
+        this.markForDelete = true;
     }
 
     _createTextures(gl)

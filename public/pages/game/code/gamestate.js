@@ -30,10 +30,13 @@ export class GameState
         this.CONST_KING = "King";
         this.CONST_PAPERTYPE = "Paper";
         this.CONST_PROP = "Prop";
-        
+
+        this.CONST_ENABLE_DEBUG = false;
         this.CONST_PAPERSIZE = 10;
         this.CONST_KING_SPEED = 1;
-        this.CONST_ENEMY_SPEED = 1;
+        this.CONST_ENEMY_SPEED = 1.1;
+        this.CONST_CAMERA_KING_Y_OFFSET = 3;
+        this.CONST_STUN_TIME = 0.2;
 
         ////////////////////////////////////////////////////////
         // rendering

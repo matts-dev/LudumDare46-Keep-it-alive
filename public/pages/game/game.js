@@ -85,15 +85,18 @@ class Game
         this.gamestate.init(); //doing this after initing background
         this.gamestate.king = new GameEntity(this.gamestate, this.gamestate.CONST_KING);
         this.gamestate.king.makeKingEntity();
-        this.lastKingPos = vec2.fromValues(0,0);
+        this.lastKingPos = vec3.fromValues(0,0,0);
 
         ////////////////////////////////////////////////////////
         // debug
         ////////////////////////////////////////////////////////
         this.testAnimEntity = new GameEntity(this.gamestate);
-        this.testAnimEntity.setLocalPosition(vec3.fromValues(5, -3, 0));
+        this.testAnimEntity.setLocalPosition(vec3.fromValues(5, -9, 0));
         this.testAnimEntity.setLocalScale(vec3.fromValues(3, 3, 3));
         this.testAnimIndex = 0;
+
+        this.camera.enableInput = this.gamestate.CONST_ENABLE_DEBUG;
+
 
         ////////////////////////////////////////////////////////
         // initialize starting objects
@@ -132,10 +135,32 @@ class Game
         this.paperTileBottom.setLocalScale(scale);
         this.paperTileBottom.setLocalPosition(vec3.fromValues(0,-paperSize,0));
 
-        // this.paperTileBottom = new GameEntity(this.gamestate);
-        // this.paperTileBottom.makePaperEntity(); //not great but gamejam!
-        // this.paperTileBottom.setLocalScale(scale);
-        // this.paperTileBottom.setLocalPosition(vec3.fromValues(0,paperSize,0));
+        this.paperTileMiddleLEFT = new GameEntity(this.gamestate, this.gamestate.CONST_PAPERTYPE);
+        this.paperTileMiddleLEFT.makePaperEntity(); //not great but gamejam!
+        this.paperTileMiddleLEFT.setLocalScale(scale);
+        this.paperTileMiddleLEFT.setLocalPosition(vec3.fromValues(-paperSize,0,0));
+        this.paperTileTopLEFT = new GameEntity(this.gamestate, this.gamestate.CONST_PAPERTYPE);
+        this.paperTileTopLEFT.makePaperEntity(); //not great but gamejam!
+        this.paperTileTopLEFT.setLocalScale(scale);
+        this.paperTileTopLEFT.setLocalPosition(vec3.fromValues(-paperSize,paperSize,0));
+        this.paperTileBottomLEFT = new GameEntity(this.gamestate, this.gamestate.CONST_PAPERTYPE);
+        this.paperTileBottomLEFT.makePaperEntity(); //not great but gamejam!
+        this.paperTileBottomLEFT.setLocalScale(scale);
+        this.paperTileBottomLEFT.setLocalPosition(vec3.fromValues(-paperSize,-paperSize,0));
+
+        this.paperTileMiddleRIGHT = new GameEntity(this.gamestate, this.gamestate.CONST_PAPERTYPE);
+        this.paperTileMiddleRIGHT.makePaperEntity(); //not great but gamejam!
+        this.paperTileMiddleRIGHT.setLocalScale(scale);
+        this.paperTileMiddleRIGHT.setLocalPosition(vec3.fromValues(paperSize,0,0));
+        this.paperTileTopRIGHT = new GameEntity(this.gamestate, this.gamestate.CONST_PAPERTYPE);
+        this.paperTileTopRIGHT.makePaperEntity(); //not great but gamejam!
+        this.paperTileTopRIGHT.setLocalScale(scale);
+        this.paperTileTopRIGHT.setLocalPosition(vec3.fromValues(paperSize,paperSize,0));
+        this.paperTileBottomRIGHT = new GameEntity(this.gamestate, this.gamestate.CONST_PAPERTYPE);
+        this.paperTileBottomRIGHT.makePaperEntity(); //not great but gamejam!
+        this.paperTileBottomRIGHT.setLocalScale(scale);
+        this.paperTileBottomRIGHT.setLocalPosition(vec3.fromValues(paperSize,-paperSize,0));
+
     }
 
     _createTextures(gl){
@@ -338,8 +363,11 @@ class Game
     handleMouseWheel(e)
     {
         //wheel event is not supported by safari
-        let normalizedY = e.deltaY / Math.abs(e.deltaY);
-        this.updateZoom(normalizedY);
+        if(this.gamestate && this.gamestate.CONST_ENABLE_DEBUG)
+        {
+            let normalizedY = e.deltaY / Math.abs(e.deltaY);
+            this.updateZoom(normalizedY);
+        }
     }
 
     handleTouchEnd(event)
@@ -547,7 +575,7 @@ class Game
             let kingPos = vec3.create();
             gs.king.getLocalPosition(kingPos);
             this.camera.position[0] = kingPos[0];
-            this.camera.position[1] = kingPos[1];
+            this.camera.position[1] = kingPos[1] + this.gamestate.CONST_CAMERA_KING_Y_OFFSET;
             // this.camera.position[2] = kingPos[2];
             gs.kingMoveDeltaX = kingPos[0] - this.lastKingPos[0];
             gs.kingMoveDeltaY = kingPos[1] - this.lastKingPos[1];
@@ -558,6 +586,12 @@ class Game
         this.paperTileTop.tick(this.gamestate);
         this.paperTileMiddle.tick(this.gamestate);
         this.paperTileBottom.tick(this.gamestate);
+        this.paperTileTopLEFT.tick(this.gamestate);
+        this.paperTileMiddleLEFT.tick(this.gamestate);
+        this.paperTileBottomLEFT.tick(this.gamestate);
+        this.paperTileTopRIGHT.tick(this.gamestate);
+        this.paperTileMiddleRIGHT.tick(this.gamestate);
+        this.paperTileBottomRIGHT.tick(this.gamestate);
 
         gs.entitySpawner.tick(gs);
 
@@ -593,48 +627,54 @@ class Game
                     {
                         if (friend.type == gs.CONST_ARCHER)
                         {
-                            friend.markForDelete = true;
+                            friend.setDamage(1)
+                            enemy.notify_thisGuyJustAttacked();
                         }
                         else if (friend.type == gs.CONST_MAGE)
                         {
-                            enemy.markForDelete = true;
+                            enemy.setDamage(1);
+                            friend.notify_thisGuyJustAttacked();
                         }
                         else
                         {
-                            friend.markForDelete = true;
-                            enemy.markForDelete = true;
+                            friend.setDamage(1)
+                            enemy.setDamage(1);
                         }
                     }
                     else if (enemy.type == gs.CONST_ARCHER)
                     {
                         if (friend.type == gs.CONST_MAGE)
                         {
-                            friend.markForDelete = true;
+                            friend.setDamage(1)
+                            enemy.notify_thisGuyJustAttacked();
                         }
                         else if (friend.type == gs.CONST_WARRIOR)
                         {
-                            enemy.markForDelete = true;
+                            enemy.setDamage(1);
+                            friend.notify_thisGuyJustAttacked();
                         }
                         else
                         {
-                            friend.markForDelete = true;
-                            enemy.markForDelete = true;
+                            friend.setDamage(1)
+                            enemy.setDamage(1);
                         }
                     }
                     else if (enemy.type == gs.CONST_MAGE)
                     {
                         if (friend.type == gs.CONST_WARRIOR)
                         {
-                            friend.markForDelete = true;
+                            friend.setDamage(1);
+                            enemy.notify_thisGuyJustAttacked();
                         }
                         else if (friend.type == gs.CONST_ARCHER)
                         {
-                            enemy.markForDelete = true;
+                            enemy.setDamage(1);
+                            friend.notify_thisGuyJustAttacked();
                         }
                         else
                         {
-                            friend.markForDelete = true;
-                            enemy.markForDelete = true;
+                            friend.setDamage(1);
+                            enemy.setDamage(1);
                         }
                     }
                 }
