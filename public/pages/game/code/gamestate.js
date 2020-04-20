@@ -65,7 +65,7 @@ export class GameState
         this.CONST_MAGE_HINT_START_TIME = 0.5;
         this.CONST_ARCHER_HINT_START_TIME = 1.5;
         this.CONST_WARRIOR_HINT_START_TIME = 2.5;
-        this.CONST_CAT_HINT_START_TIME = 3.5;
+        this.CONST_CAT_HINT_START_TIME = 3.0;
 
         this.CONST_MAGE_HINT_END_TIME = 3.5;
         this.CONST_ARCHER_HINT_END_TIME = 4.0;
