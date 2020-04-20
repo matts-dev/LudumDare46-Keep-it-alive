@@ -275,7 +275,7 @@ export class GameEntity extends DraggableSceneNode_Textured
         {
             gamestate.backgroundRenderList.push(this);
         }
-        else if(type == gamestate.CONST_BUTTONTYPE)
+        else if(type == gamestate.CONST_BUTTONTYPE || type == "ARROW")
         {
             //button type needs to be rendered manually!
         }
@@ -654,7 +654,7 @@ export class GameEntity extends DraggableSceneNode_Textured
         {
             this.gamestate.score++;
             this.gamestate.score_since_king_damaged++;
-            console.log(this.gamestate.score);
+            //console.log(this.gamestate.score);
         }
     }
 
@@ -744,24 +744,32 @@ export class GameEntity extends DraggableSceneNode_Textured
                 let arrowDefaultDir = vec3.fromValues(1,0,0); //points in x dir
 
                 let enemyPos = vec3.create();
+                let kingToEnemy = vec3.create();
                 let vecToEnemy = vec3.create();
                 let offsetNodeVec = vec3.create();
                 let arrowPos = vec3.create();
+                let kingPos = vec3.create();
+                this.gamestate.king.getLocalPosition(kingPos);
                 for(let weakEnemy of listToRenderTo)
                 {
-                    if(weakEnemy) //not sure if it is possible to have null, but we tick this very early so one might have been cleaned up, best to check
+                    if(weakEnemy && !weakEnemy.dead) //not sure if it is possible to have null, but we tick this very early so one might have been cleaned up, best to check
                     {
                         weakEnemy.getLocalPosition(enemyPos);
-                        vec3.subtract(vecToEnemy, enemyPos, myPos);
-                        vec3.normalize(vecToEnemy, vecToEnemy);
-
-                        vec3.copy(offsetNodeVec, vecToEnemy);
-                        vec3.scale(offsetNodeVec, vecToEnemy, gs.CONST_ARROW_OFFSET);
-
-                        vec3.add(arrowPos, myPos, offsetNodeVec);
-                        staticArrowRenderer.setLocalPosition(arrowPos);
-                        staticArrowRenderer.setLocalRotation(getRotationBetweenVectors(arrowDefaultDir,vecToEnemy));
-                        staticArrowRenderer.renderEntity(gs);
+                        vec3.subtract(kingToEnemy,kingPos, enemyPos)
+                        let distToEnemy = vec3.length(kingToEnemy);
+                        if(distToEnemy < gamestate.CONST_ARROW_MAX_DIST)
+                        {
+                            vec3.subtract(vecToEnemy, enemyPos, myPos);
+                            vec3.normalize(vecToEnemy, vecToEnemy);
+    
+                            vec3.copy(offsetNodeVec, vecToEnemy);
+                            vec3.scale(offsetNodeVec, vecToEnemy, gs.CONST_ARROW_OFFSET);
+    
+                            vec3.add(arrowPos, myPos, offsetNodeVec);
+                            staticArrowRenderer.setLocalPosition(arrowPos);
+                            staticArrowRenderer.setLocalRotation(getRotationBetweenVectors(arrowDefaultDir,vecToEnemy));
+                            staticArrowRenderer.renderEntity(gs);
+                        }
                     }
                 }
             }

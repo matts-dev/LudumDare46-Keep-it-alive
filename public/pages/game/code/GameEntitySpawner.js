@@ -107,7 +107,12 @@ export class GameEntitySpawner
     }
 
     tick(gamestate)
-    {   
+    {
+        if (gamestate.king.dead)
+        {
+            return;
+        }
+
         if (gamestate.currentTimeSec > this.lastPropSpawnTime + 2.0)
         {
             this.spawnProp(gamestate);

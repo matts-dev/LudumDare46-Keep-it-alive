@@ -107,7 +107,6 @@ class Game
         this.scoreText.setLocalScale(vec3.fromValues(10,10,10));
         this.scoreText.setLocalPosition(vec3.fromValues(-6.5, 4.5, 0));
 
-
         this.mageHint = new TextBlockSceneNode(this.gl, this.bitmapFont, "Mage beats Warrior!" );
         this.mageHint.setParent(this.positionHolder);
         this.mageHint.setLocalScale(vec3.fromValues(10,10,10));
@@ -682,6 +681,27 @@ class Game
 
         // UI ticks
         this.scoreText.wrappedText.text = "Score: " + gs.score.toString();
+        let moveValue = 0;
+        if (gs.king.dead)
+        {
+            moveValue = -2;
+            this.mageHint.wrappedText.text = "Matt Stone: Programmer";
+            this.archerHint.wrappedText.text = "Jacob Stone: Programmer";
+            this.warriorHint.wrappedText.text = "Stacey Arrington: Art";
+            this.catHint.wrappedText.text = "Amanda Stone: Art";
+        }
+        else
+        {
+            this.mageHint.wrappedText.text = "Mage beats Warrior!";
+            this.archerHint.wrappedText.text = "Archer beats Mage!";
+            this.warriorHint.wrappedText.text = "Warrior beats Archer!";
+            this.catHint.wrappedText.text = "PROTECT THE CAT!";
+        }
+
+        this.mageHint.setLocalPosition(vec3.fromValues(0, 3 + moveValue, 0));
+        this.archerHint.setLocalPosition(vec3.fromValues(0, 2.5 + moveValue, 0));
+        this.warriorHint.setLocalPosition(vec3.fromValues(0, 2.0 + moveValue, 0));
+        this.catHint.setLocalPosition(vec3.fromValues(0, 1.5 + moveValue, 0));
 
         //prevent exploit ball of power
         let thisPos = vec3.create();
@@ -1010,19 +1030,24 @@ class Game
         }
         this.scoreText.render(this.gamestate.projectionMat, this.gamestate.viewMat);
 
-        if(gs.currentTimeSec > gs.CONST_MAGE_HINT_START_TIME &&  gs.currentTimeSec < gs.CONST_MAGE_HINT_END_TIME)
+        let renderMageHint = gs.currentTimeSec > gs.CONST_MAGE_HINT_START_TIME &&  gs.currentTimeSec < gs.CONST_MAGE_HINT_END_TIME;
+        let renderArcherHint = gs.currentTimeSec > gs.CONST_ARCHER_HINT_START_TIME &&  gs.currentTimeSec < gs.CONST_ARCHER_HINT_END_TIME;
+        let renderWarriorHint = gs.currentTimeSec > gs.CONST_WARRIOR_HINT_START_TIME &&  gs.currentTimeSec < gs.CONST_WARRIOR_HINT_END_TIME;
+        let rednerCatHint = gs.currentTimeSec > gs.CONST_CAT_HINT_START_TIME &&  gs.currentTimeSec < gs.CONST_CAT_HINT_END_TIME;
+
+        if(renderMageHint || gs.king.dead)
         {
             this.mageHint.render(gs.projectionMat, gs.viewMat);
         }
-        if(gs.currentTimeSec > gs.CONST_ARCHER_HINT_START_TIME &&  gs.currentTimeSec < gs.CONST_ARCHER_HINT_END_TIME)
+        if(renderArcherHint || gs.king.dead)
         {
             this.archerHint.render(gs.projectionMat, gs.viewMat);
         }
-        if(gs.currentTimeSec > gs.CONST_WARRIOR_HINT_START_TIME &&  gs.currentTimeSec < gs.CONST_WARRIOR_HINT_END_TIME)
+        if(renderWarriorHint || gs.king.dead)
         {
             this.warriorHint.render(gs.projectionMat, gs.viewMat);
         }
-        if(gs.currentTimeSec > gs.CONST_CAT_HINT_START_TIME &&  gs.currentTimeSec < gs.CONST_CAT_HINT_END_TIME)
+        if(rednerCatHint || gs.king.dead)
         {
             this.catHint.render(gs.projectionMat, gs.viewMat);
         }
@@ -1066,7 +1091,9 @@ function main()
 
         //adjust attributes
         let intViewportHeight = window.innerHeight;
-        console.log(intViewportHeight);
+        let intViewportWidth = window.innerWidth;
+        let viewportAspect = window.innerWidth / window.innerHeight;
+        console.log("aspect",viewportAspect, intViewportHeight, intViewportWidth);
 
         //set attribtues
         // canvas.setAttribute("width", 100);
