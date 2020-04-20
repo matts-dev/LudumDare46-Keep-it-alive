@@ -37,10 +37,14 @@ export class GameState
         this.CONST_BUTTONTYPE = "Button";
 
         this.CONST_SPAWN_SLOWEST = 4.0;
-        this.CONST_SPAWN_FASTEST = 1.5
+        // this.CONST_SPAWN_FASTEST = 1.5;
+        // this.CONST_SPAWN_FASTEST = 1.0;
+        // this.CONST_SPAWN_FASTEST = 1.25;
+        this.CONST_SPAWN_FASTEST = 1.125;
         this.MAX_SPEED_KILL_COUNT = 10;
         this.CONST_DISABLED_SPEED_BOOST = 3;
         this.CONST_DISABLE_DURATION = 1.5;
+        this.CONST_ARROW_MAX_DIST = 7
 
         this.CONST_ENABLE_DEBUG = false;
         this.CONST_ENABLE_ARROW = true;
@@ -51,7 +55,7 @@ export class GameState
         this.CONST_CAMERA_KING_Y_OFFSET = 3;
         this.CONST_STUN_TIME = 0.2;
         this.CONST_SPAWN_Y_OFFSET = 7;
-        this.CONST_FRIEND_START_HP = 3;
+        this.CONST_FRIEND_START_HP = 1;
         this.CONST_KING_START_HP = 3;
         this.CONST_BUMP_ENEMY_OFFSET = 1;
         this.CONST_SEPARATE_FACTOR = 1; //value of 1 does nothing
