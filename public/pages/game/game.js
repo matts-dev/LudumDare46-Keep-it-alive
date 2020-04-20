@@ -683,6 +683,40 @@ class Game
         // UI ticks
         this.scoreText.wrappedText.text = "Score: " + gs.score.toString();
 
+        //prevent exploit ball of power
+        let thisPos = vec3.create();
+        let otherPos = vec3.create();
+        let vecToFriend = vec3.create();
+        let newPos = vec3.create();
+        for(let thisFriendIdx = 0; thisFriendIdx < gs.friendList.length; ++thisFriendIdx)
+        {
+            let friend = gs.friendList[thisFriendIdx];
+            for(let otherIdx = 0; otherIdx < gs.friendList.length; ++otherIdx)
+            {
+                let otherFriend = gs.friendList[otherIdx];
+                if(otherIdx != thisFriendIdx && friend && otherFriend && !friend.bDragging && !otherFriend.bDragging)
+                {
+                    friend.getLocalPosition(thisPos);
+                    otherFriend.getLocalPosition(otherPos);
+                    let dist = vec3.distance(thisPos, otherPos);
+                    if (dist <= 1)
+                    {
+                        vec3.subtract(vecToFriend, thisPos, otherPos);
+
+                        vec3.scale(vecToFriend, vecToFriend, 0.5);
+                        vec3.add(newPos, vecToFriend, thisPos);
+                        friend.setLocalPosition(newPos);
+
+                        vec3.scale(vecToFriend, vecToFriend, -1.0);
+                        vec3.add(newPos, vecToFriend, otherPos);
+                        otherFriend.setLocalPosition(newPos);
+    
+                    }
+                }
+            }
+        }
+
+
 
         /////////////////////////////////////////////////////////////////////////////
         // collison section
