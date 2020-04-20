@@ -223,6 +223,7 @@ export class GameEntity extends DraggableSceneNode_Textured
         this.dead = false;
         this.gamestate = gamestate; //just caching this because it is easier for now! gamejam hacks!
         this.hp = 1;
+        this.disabledStartTime = -500;  //don't disable from start
 
         this.currentAnimationTickRateSecs = 0.1;
         this.framesInCurrentAnimation = 4;
@@ -513,9 +514,11 @@ export class GameEntity extends DraggableSceneNode_Textured
         // Kinematics
         ////////////////////////////////////////////////////////
         let isNotStunned = this.stunTimeStamp < this.gamestate.currentTimeSec - this.gamestate.CONST_STUN_TIME;
-
+        let disableStun = this.isDisabled();
+        
         if (!this.bDragging 
             && !this.bIsPaperEntity
+            && !disableStun
             && isNotStunned
             ) // if not grabbed
         {
@@ -554,6 +557,7 @@ export class GameEntity extends DraggableSceneNode_Textured
         ////////////////////////////////////////////////////////
         if(this.lastAnimationTickTime + this.currentAnimationTickRateSecs < gamestate.currentTimeSec
              && !this.bIsPaperEntity
+             && !disableStun
              && !this.dead
             )
         {
@@ -577,8 +581,16 @@ export class GameEntity extends DraggableSceneNode_Textured
         }
     }
 
+    isDisabled()
+    {
+        // console.log("currTime:",this.gamestate.currentTimeSec, " disStartTime:", this.disabledStartTime, "DISABLE_DUR:",  this.gamestate.CONST_DISABLE_DURATION);
+        return this.gamestate.currentTimeSec < this.disabledStartTime + this.gamestate.CONST_DISABLE_DURATION;
+    }
+
     setDamage(amount)
     {
+        let disabledFriend = false;
+
         this.stun();
         if(this.stunAnimation)
         {
@@ -589,14 +601,36 @@ export class GameEntity extends DraggableSceneNode_Textured
         this.hp -= amount;
         if(this.hp <= 0)
         {
-            this.die();
+            if(this.isFriend && !(this.type == this.gamestate.CONST_KING))
+            {
+                disabledFriend = true;
+                this.startDisableStun(); //don't kill friendlys anymore, should be funner this way
+            }
+            else
+            {
+                this.die();
+            }
         }
+        return disabledFriend;
     }
 
-    notify_thisGuyJustAttacked()
+    startDisableStun()
     {
-        //may need to make sure we tick entities after collision is done so stun will apply before move
-        this.stun();
+        // console.log("startDisableStun");
+        this.disabledStartTime = this.gamestate.currentTimeSec;
+    }
+
+    notify_thisGuyJustAttacked(disabledFriend)
+    {
+        if(!disabledFriend)
+        {
+            //may need to make sure we tick entities after collision is done so stun will apply before move
+            this.stun();
+        }
+        else if(!this.isFriend)
+        {
+            this.speed = this.gamestate.CONST_DISABLED_SPEED_BOOST;
+        }
     }
 
     stun()

@@ -18,7 +18,7 @@ import { GameButton } from "./code/GameButton.js";
 //module level statics and globals
 //////////////////////////////////////////////////////
 var game = null;
-
+let globalOrthoScale = 10;
 
 
 //////////////////////////////////////////////////////
@@ -55,7 +55,7 @@ class Game
         ///////////////////////////////////////////////////////////////////////////
         this.camera = new Camera(vec3.fromValues(0,0,1), vec3.fromValues(0,0,-1));
         this.camera.enableOrthoMode = true;
-        this.camera.orthoHeight = 10;
+        this.camera.orthoHeight = globalOrthoScale;
 
         //subclass draggableSceneNode to define custom textures.
         this.draggableDemo = new DraggableSceneNode_Textured(this.gl, true, this.glCanvas, this.camera);
@@ -704,21 +704,21 @@ class Game
                 let friendPosition = vec3.create();
                 friend.getLocalPosition(friendPosition);
                 let dist = vec3.distance(enemyPosition, friendPosition);
-                if (dist <= 1 && !enemy.dead)
+                if (dist <= 1 && !enemy.dead && !friend.isDisabled())
                 {
                     // TODO: destroy the game entities that needs to be destroyed
                     if (enemy.type == gs.CONST_WARRIOR)
                     {
                         if (friend.type == gs.CONST_ARCHER)
                         {
-                            friend.setDamage(1)
-                            enemy.notify_thisGuyJustAttacked();
+                            let disabledFriend = friend.setDamage(1)
+                            enemy.notify_thisGuyJustAttacked(disabledFriend);
                             offsetEnemyLambda(enemy, this.gamestate);
                         }
                         else if (friend.type == gs.CONST_MAGE)
                         {
                             enemy.setDamage(1);
-                            friend.notify_thisGuyJustAttacked();
+                            friend.notify_thisGuyJustAttacked(false);
                         }
                         else
                         {
@@ -731,14 +731,14 @@ class Game
                     {
                         if (friend.type == gs.CONST_MAGE)
                         {
-                            friend.setDamage(1)
-                            enemy.notify_thisGuyJustAttacked();
+                            let disabledFriend = friend.setDamage(1)
+                            enemy.notify_thisGuyJustAttacked(disabledFriend);
                             offsetEnemyLambda(enemy, this.gamestate);
                         }
                         else if (friend.type == gs.CONST_WARRIOR)
                         {
                             enemy.setDamage(1);
-                            friend.notify_thisGuyJustAttacked();
+                            friend.notify_thisGuyJustAttacked(false);
                         }
                         else
                         {
@@ -751,14 +751,14 @@ class Game
                     {
                         if (friend.type == gs.CONST_WARRIOR)
                         {
-                            friend.setDamage(1);
-                            enemy.notify_thisGuyJustAttacked();
+                            let disabledFriend = friend.setDamage(1);
+                            enemy.notify_thisGuyJustAttacked(disabledFriend);
                             offsetEnemyLambda(enemy, this.gamestate);
                         }
                         else if (friend.type == gs.CONST_ARCHER)
                         {
                             enemy.setDamage(1);
-                            friend.notify_thisGuyJustAttacked();
+                            friend.notify_thisGuyJustAttacked(false);
                         }
                         else
                         {
@@ -1019,6 +1019,29 @@ function handleIphoneWorkaround()
 
 function main()
 {
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // canvas width adjustment
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    let canvas = document.getElementById("glCanvas");
+    if(canvas)
+    {
+        // console.log("found canvas");
+        let widthAttribute = canvas.getAttribute("width");
+        let heightAttribute = canvas.getAttribute("height");
+        console.log("canvas size:", widthAttribute, heightAttribute);
+
+        //adjust attributes
+        let intViewportHeight = window.innerHeight;
+        console.log(intViewportHeight);
+
+        //set attribtues
+        // canvas.setAttribute("width", 100);
+        // canvas.setAttribute("height", 100);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Iphone audio fixes
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     let iphoneBtn = document.getElementById("enableIphoneAudioButton");
 
     let suppressStart = false;
