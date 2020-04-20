@@ -58,8 +58,52 @@ export class GameEntitySpawner
         deltaSpeed *= currProgressPerc; //linear interpolation, hacky way to write it, sorry.
 
         let rate = gamestate.CONST_SPAWN_SLOWEST - deltaSpeed; //take away some stuff from slowest, to make it nearer fastest
-        console.log(rate);
         return rate;
+    }
+
+    GetRandomEntityType(gamestate)
+    {
+        let randomTypeIndex = this.GetRandomNumberInRange(0, 2);
+        let typeToSpawn = "invalid";
+
+        switch(randomTypeIndex)
+        {
+            case 0:
+                typeToSpawn = gamestate.CONST_WARRIOR;
+                break;
+            case 1:
+                typeToSpawn = gamestate.CONST_ARCHER;
+                break;
+            case 2:
+                typeToSpawn = gamestate.CONST_MAGE;
+                break;
+            default:
+                // Fail Safe
+                typeToSpawn = gamestate.CONST_WARRIOR;
+        }
+
+        return typeToSpawn;
+    }
+
+    GetOpposingEntityType(gamestate, type)
+    {
+        let typeToSpawn = "invalid";
+        switch(type)
+        {
+            case gamestate.CONST_WARRIOR:
+                typeToSpawn = gamestate.CONST_MAGE;
+                break;
+            case gamestate.CONST_ARCHER:
+                typeToSpawn = gamestate.CONST_WARRIOR;
+                break;
+            case gamestate.CONST_MAGE:
+                typeToSpawn = gamestate.CONST_ARCHER;
+                break;
+            default:
+                break;
+        }
+
+        return typeToSpawn;
     }
 
     tick(gamestate)
@@ -78,23 +122,7 @@ export class GameEntitySpawner
                 // spawn in random areas to try and destroy the king
 
                 let randomTypeIndex = this.GetRandomNumberInRange(0, 2);
-                let typeToSpawn = "Invalid";
-
-                switch(randomTypeIndex)
-                {
-                    case 0:
-                        typeToSpawn = gamestate.CONST_WARRIOR;
-                        break;
-                    case 1:
-                        typeToSpawn = gamestate.CONST_ARCHER;
-                        break;
-                    case 2:
-                        typeToSpawn = gamestate.CONST_MAGE;
-                        break;
-                    default:
-                        typeToSpawn = gamestate.CONST_WARRIOR;
-                        // Fail Safe
-                }
+                let typeToSpawn = this.GetRandomEntityType(gamestate);
 
                 let cam = gamestate.camera;
                 let x = this.GetRandomNumberInRangeFloat(-10.0, 10.0);
@@ -112,23 +140,22 @@ export class GameEntitySpawner
             }
             else
             {
-                let typeToSpawn = "invalid";
+
+                let shouldSpawnInRandomType = this.GetRandomNumberInRange(0, 2);
+
+
                 let friendIndex = GetRandomInt(gamestate.friendList.length);
                 let chosenFriend = gamestate.friendList[friendIndex];
 
-                switch(chosenFriend.type)
+                let typeToSpawn = "invalid";
+                if (shouldSpawnInRandomType == 1)
                 {
-                    case gamestate.CONST_WARRIOR:
-                        typeToSpawn = gamestate.CONST_MAGE;
-                        break;
-                    case gamestate.CONST_ARCHER:
-                        typeToSpawn = gamestate.CONST_WARRIOR;
-                        break;
-                    case gamestate.CONST_MAGE:
-                        typeToSpawn = gamestate.CONST_ARCHER;
-                        break;
-                    default:
-                        // do nothing
+                    typeToSpawn = this.GetRandomEntityType(gamestate);
+                    //console.log("random enemy type to spawn chosen!");
+                }
+                else
+                {
+                    typeToSpawn = this.GetOpposingEntityType(gamestate, chosenFriend.type);
                 }
 
                 if (typeToSpawn != "invalid")
@@ -138,13 +165,19 @@ export class GameEntitySpawner
                         let chosenFriendPosition = vec3.create();
                         chosenFriend.getLocalPosition(chosenFriendPosition);
 
+                        let shouldPickRandomX = this.GetRandomNumberInRange(0, 2);
+
                         let cam = gamestate.camera;
                         let x = chosenFriendPosition[0];
                         let y = cam.position[1];
                         // let z = cam.position[2];
 
-                        //let xOffset = GetRandomInt(11) - 5;
-                        // let yOffset = 15;
+                        if (shouldPickRandomX == 1)
+                        {
+                            x = this.GetRandomNumberInRangeFloat(-5.0, 5.0);
+                            //console.log("random X position for enemy chosen!");
+                        }
+
                         let yOffset = gamestate.CONST_SPAWN_Y_OFFSET;
 
                         let newEnemy = new GameEntity(gamestate, typeToSpawn);

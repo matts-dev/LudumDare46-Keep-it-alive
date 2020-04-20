@@ -39,8 +39,10 @@ export class GameState
         this.CONST_SPAWN_SLOWEST = 4.0;
         this.CONST_SPAWN_FASTEST = 1.5
         this.MAX_SPEED_KILL_COUNT = 10;
+        this.CONST_DISABLED_SPEED_BOOST = 3;
+        this.CONST_DISABLE_DURATION = 1.5;
 
-        this.CONST_ENABLE_DEBUG = true;
+        this.CONST_ENABLE_DEBUG = false;
         this.CONST_ENABLE_ARROW = true;
         this.CONST_ARROW_OFFSET = 0.75;
         this.CONST_PAPERSIZE = 10;
