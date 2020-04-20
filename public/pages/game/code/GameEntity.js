@@ -239,6 +239,9 @@ export class GameEntity extends DraggableSceneNode_Textured
         this.stunAnimation = null;
         this.bClearStunAnim = false;
 
+        // this.hurtSound = new EmeraldUtils.Sound( "../shared_resources/Sounds/PianoKeySounds/A2.wav");
+                                                                        
+
         this.initStaticAnimations();
         if(!staticArrowRenderer)
         {
@@ -590,6 +593,9 @@ export class GameEntity extends DraggableSceneNode_Textured
     setDamage(amount)
     {
         let disabledFriend = false;
+        
+        if(this.hurtSound) { this.hurtSound.play;} 
+        //this.hurtSound.play();
 
         this.stun();
         if(this.stunAnimation)

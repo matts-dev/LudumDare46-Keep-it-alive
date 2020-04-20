@@ -125,7 +125,7 @@ export class GameEntitySpawner
                 let typeToSpawn = this.GetRandomEntityType(gamestate);
 
                 let cam = gamestate.camera;
-                let x = this.GetRandomNumberInRangeFloat(-10.0, 10.0);
+                let x = this.GetRandomNumberInRangeFloat(-10.0, 11.0);
                 let y = cam.position[1] + gamestate.CONST_SPAWN_Y_OFFSET;
 
                 let newEnemy = new GameEntity(gamestate, typeToSpawn);
@@ -174,7 +174,7 @@ export class GameEntitySpawner
 
                         if (shouldPickRandomX == 1)
                         {
-                            x = this.GetRandomNumberInRangeFloat(-5.0, 5.0);
+                            x = this.GetRandomNumberInRangeFloat(-5.0, 6.0);
                             //console.log("random X position for enemy chosen!");
                         }
 
@@ -205,11 +205,11 @@ export class GameEntitySpawner
         let x = kingPosition[0];
         let y = kingPosition[1];
 
-        let xOffset = this.GetRandomNumberInRange(-3, 3);
+        let xOffset = this.GetRandomNumberInRange(-3, 4);
         let attempts = 0;
         while (this.chosenFriendPositionsX.includes(xOffset) && attempts <= 10)
         {
-            xOffset = this.GetRandomNumberInRange(-3, 3);
+            xOffset = this.GetRandomNumberInRange(-3, 4);
             attempts++;
             //console.log("Choosing another friend spawn spot:", xOffset, this.chosenFriendPositionsX);
         }
@@ -232,10 +232,10 @@ export class GameEntitySpawner
         let x = 0;
         let y = cam.position[1];
 
-        let xOffset = this.GetRandomNumberInRangeFloat(-10.0, 10.0);
+        let xOffset = this.GetRandomNumberInRangeFloat(-10.0, 11.0);
         let yOffset = gamestate.CONST_SPAWN_Y_OFFSET;
 
-        let scaleFactor = this.GetRandomNumberInRangeFloat(1.0, 2.0);
+        let scaleFactor = this.GetRandomNumberInRangeFloat(1.0, 3.0);
         let scale = vec3.fromValues(scaleFactor, scaleFactor, scaleFactor);
 
         // This should automatically add the prop to the prop render list in gamestate
