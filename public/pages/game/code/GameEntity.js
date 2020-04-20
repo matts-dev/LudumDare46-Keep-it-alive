@@ -540,6 +540,7 @@ export class GameEntity extends DraggableSceneNode_Textured
                     vec3.subtract(result, kingPosition, currentLocalPosition);
                     vec3.normalize(result, result);
                     this.movementDirection = result;
+                    this.speed = this.gamestate.CONST_ENEMY_CHASE_KING_SPEED;
                 }
             }
 
@@ -594,7 +595,7 @@ export class GameEntity extends DraggableSceneNode_Textured
     {
         let disabledFriend = false;
         
-        if(this.hurtSound) { this.hurtSound.play;} 
+        // if(this.hurtSound) { this.hurtSound.play;} 
         //this.hurtSound.play();
 
         this.stun();
