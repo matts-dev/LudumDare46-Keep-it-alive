@@ -1106,18 +1106,18 @@ function main()
     let iphoneBtn = document.getElementById("enableIphoneAudioButton");
 
     let suppressStart = false;
-    if(iphoneBtn)
-    {
-        if(!isSafari())
-        {
-            iphoneBtn.style.display="none";
-        } 
-        else 
-        {
-            iphoneBtn.onclick = handleIphoneWorkaround;
-            suppressStart = true;
-        }
-    }
+    // if(iphoneBtn)
+    // {
+    //     if(!isSafari())
+    //     {
+    //         iphoneBtn.style.display="none";
+    //     } 
+    //     else 
+    //     {
+    //         iphoneBtn.onclick = handleIphoneWorkaround;
+    //         suppressStart = true;
+    //     }
+    // }
 
     if(!suppressStart)
     {
